@@ -1,0 +1,6 @@
+pandas
+tqdm
+wandb
+matplotlib
+seaborn
+jupyter
