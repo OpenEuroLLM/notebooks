@@ -1,0 +1,10 @@
+pandas
+tqdm
+wandb
+matplotlib
+seaborn
+jupyter
+langchain
+langchain_together
+langchain_community
+transformers
