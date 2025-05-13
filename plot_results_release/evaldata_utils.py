@@ -137,6 +137,34 @@ def load_data(
                         rows.append(row)
     return pd.DataFrame(rows)
 
+def load_mapping():
+    with open(Path(__file__).parent / "mapping.json", "r") as f:
+        dict_mapping = json.load(f)
+    rows = []
+    for key, value in dict_mapping.items():
+        row = value["config"].copy()
+        row["checkpoint_path"] = key
+        hidden_size = row["hidden_size"]
+        num_layers = row["num_layers"]
+        ffn_hidden_size = row["ffn_hidden_size"]
+        row["model_size"] = (
+            (50432 * hidden_size)
+            + (
+                num_layers
+                * (
+                    (4 * hidden_size**2)
+                    + 2 * hidden_size * ffn_hidden_size
+                    + ffn_hidden_size * hidden_size
+                )
+            )
+        ) / 1_000_000_000
+        model_size = row["model_size"]
+        row["model_size_str"] = (
+            f"{model_size:.2f}b" if model_size < 1 else f"{model_size:.1f}b"
+        )
+
+        rows.append(row)
+    return pd.DataFrame(rows), dict_mapping
 
 def main():
     # Example usage
