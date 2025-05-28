@@ -1,6 +1,19 @@
 import pandas as pd
 
-bench_sel = ['mmlu', 'copa', 'lambada_openai', 'openbookqa', 'winogrande', 'arc_challenge', 'boolq', 'commonsense_qa', 'hellaswag', 'piqa']
+bench_sel = [
+    'mmlu',
+    'copa',
+    'lambada_openai',
+    'openbookqa',
+    'winogrande',
+    'arc_challenge',
+    'arc_easy',
+    'boolq',
+    'commonsense_qa',
+    'hellaswag',
+    'piqa',
+    #'social_iqa',
+]
 hp_cols = [
  'size',
  'dataset',
