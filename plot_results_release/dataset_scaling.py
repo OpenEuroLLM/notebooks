@@ -11,12 +11,12 @@ fig, axes = plt.subplots(1, len(sizes), figsize=(11, 4), sharey=True)
 df_plot = df_all.copy()
 df_plot.dataset = df_plot.dataset.apply(lambda s: s.replace('Nemotron-cc-2024-HQ-real-synth-mix', 'Nemotron-cc'))
 df_plot.dataset = df_plot.dataset.str.lower()
-
+n_tokens = "300B"
 config = {
     # "size": 1.7,
     # "tokenizer": "GPT-NeoX",
     # "global_bs": 1008,
-    "n_tokens": "300B",
+    "n_tokens": n_tokens,
     "seq_length": 4096,
     # "lr_decay_style": "WSD",
     "lr_warmup_iters": 25000,
@@ -51,9 +51,11 @@ for i, (ax, size) in enumerate(zip(axes, sizes)):
         ax=ax,
     )
     ax.grid()
-    ax.set_title(f"{size}B (300B tokens)");
+    ax.set_title(f"{size}B ({n_tokens} tokens)");
+    #ax.set_xlabel("Number of tokens");
     ax.set_xlabel("Number of iterations");
-    ax.set_ylabel(f"Average performance on {len(bench_sel)} tasks");
+    #ax.set_ylabel(f"Average performance on {len(bench_sel)} tasks");
+    ax.set_ylabel(f"Average downstream performance");
     show_legend_all = False
     if show_legend_all:
         ax.legend(

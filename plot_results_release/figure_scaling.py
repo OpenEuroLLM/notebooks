@@ -8,7 +8,6 @@ def flops(n_tokens_B: float, n_params_T: float):
     return 6 * n_tokens_B * 1e9 * n_params_T * 1e12
 
 
-# TODO Important: check those numbers, some are from memory
 flops_baselines = {
     'EuroLLM-1.7B': flops(n_tokens_B=1.7, n_params_T=4),
     'EuroLLM-9B': flops(n_tokens_B=9, n_params_T=4),

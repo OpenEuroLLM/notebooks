@@ -14,7 +14,7 @@ def load_model_checkpoints_list():
     return list(sorted([Path(x).name.strip() for x in res]))
 
 def load_model_evals():
-    path = Path(__file__).parent.parent / "data" / "results-22-05.csv.zip"
+    path = Path(__file__).parent / "data" / "results-22-05.csv.zip"
     df_all = pd.read_csv(path)
     return df_all, list(sorted(df_all.model_name.unique()))
 
