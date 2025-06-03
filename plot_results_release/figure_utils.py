@@ -1,3 +1,4 @@
+from pathlib import Path
 import pandas as pd
 
 bench_sel = [
@@ -26,6 +27,6 @@ hp_cols = [
  'lr_warmup_iters']
 
 def load_data():
-    df = pd.read_csv("../data/results-22-05.csv.zip")
+    df = pd.read_csv(Path(__file__).parent / "data/results-22-05.csv.zip")
     df["n_iter"] = df.model_path.apply(lambda x: int(x.split("_")[-1]))
     return df
