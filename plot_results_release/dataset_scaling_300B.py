@@ -9,13 +9,13 @@ sizes = [0.13, 0.4, 1.3, 1.7]
 fig, axes = plt.subplots(1, len(sizes), figsize=(11, 4), sharey=True)
 
 df_plot = df_all.copy()
-df_plot.dataset = df_plot.dataset.apply(lambda s: s.replace('Nemotron-cc-2024-HQ-real-synth-mix', 'Nemotron-cc'))
+df_plot.dataset = df_plot.dataset.apply(lambda s: s.replace('Nemotron-cc-2024-HQ-real-synth-mix', 'Nemotron-cc-hq'))
 df_plot.dataset = df_plot.dataset.str.lower()
 n_tokens = "300B"
 config = {
     # "size": 1.7,
     # "tokenizer": "GPT-NeoX",
-    # "global_bs": 1008,
+    #"global_batch_size": 1008,
     "n_tokens": n_tokens,
     "seq_length": 4096,
     # "lr_decay_style": "WSD",
@@ -30,12 +30,12 @@ for key, value in config.items():
 
 for i, (ax, size) in enumerate(zip(axes, sizes)):
     df_sub = df_plot.loc[(mask) & (df_plot.loc[:, "size"] == size)].copy()
-    df_sub["tokens"] = df_plot["n_iter"] * df_plot["global_batch_size"]
-    df_iter = df_sub.pivot_table(index=["dataset", "n_iter"], columns="benchmark", values="value").loc[:, bench_sel].mean(axis=1)
+    df_sub["tokens"] = df_plot["n_iter"] * 1008 * 4096
+    df_iter = df_sub.pivot_table(index=["dataset", "tokens"], columns="benchmark", values="value").loc[:, bench_sel].mean(axis=1)
 
-    df_iter_pivot = df_iter.reset_index().pivot_table(index="n_iter", columns="dataset", values=0)
+    df_iter_pivot = df_iter.reset_index().pivot_table(index="tokens", columns="dataset", values=0)
     dataset_order = [
-        "Nemotron-cc",
+        "Nemotron-cc-hq",
         "DCLM",
         "HPLT-2.0",
         "FineWeb-Edu-1.4T",
@@ -51,9 +51,9 @@ for i, (ax, size) in enumerate(zip(axes, sizes)):
         ax=ax,
     )
     ax.grid()
-    ax.set_title(f"{size}B ({n_tokens} tokens)");
-    #ax.set_xlabel("Number of tokens");
-    ax.set_xlabel("Number of iterations");
+    ax.set_title(f"{size}B");
+    ax.set_xlabel("Number of tokens");
+    # ax.set_xlabel("Number of iterations");
     #ax.set_ylabel(f"Average performance on {len(bench_sel)} tasks");
     ax.set_ylabel(f"Average downstream performance");
     show_legend_all = False

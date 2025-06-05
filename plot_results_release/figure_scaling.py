@@ -67,7 +67,7 @@ for n_tokens in ["300B", "1T", "all"]:
     df_avg[x_col] = 6 * df_avg["n_tokens"].apply(lambda x: n_tokens_mapping[x]) * df_avg["size"] * 1e9
 
     # read results from baseline
-    df_baselines = pd.read_csv("results-baselines.csv.zip")
+    df_baselines = pd.read_csv("data/results-baselines.csv.zip")
     df_baselines_pivot = df_baselines.pivot_table(
         index="model_name", columns="benchmark", values="value"
     ).loc[:, bench_sel]
