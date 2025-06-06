@@ -4,31 +4,30 @@ import matplotlib.pyplot as plt
 from figure_utils import load_data, bench_sel, hp_cols
 
 
-def flops(n_tokens_B: float, n_params_T: float):
-    return 6 * n_tokens_B * 1e9 * n_params_T * 1e12
-
+def flops(n_tokens_T: float, n_params_B: float):
+    return 6 * n_tokens_T * 1e9 * n_params_B * 1e12
 
 flops_baselines = {
-    'EuroLLM-1.7B': flops(n_tokens_B=1.7, n_params_T=4),
-    'EuroLLM-9B': flops(n_tokens_B=9, n_params_T=4),
+    'EuroLLM-1.7B': flops(n_tokens_T=1.7, n_params_B=4),
+    'EuroLLM-9B': flops(n_tokens_T=9, n_params_B=4),
     # Not sure which one is correct
     # "all models are pretrained on our latest large-scale dataset, encompassing up to 18 trillion tokens"
     # https://qwenlm.github.io/blog/qwen2.5/
     # We are not authorized to share the details right now but the rough number is over 3T tokens for Qwen1.5 and over
     # 7T tokens for Qwen2.
     # https://github.com/QwenLM/Qwen3/issues/562
-    'Qwen2.5-0.5B': flops(n_params_T=0.5, n_tokens_B=18),
-    'Qwen2.5-1.5B': flops(n_params_T=1.5, n_tokens_B=18),
-    'Qwen2.5-3B': flops(n_params_T=3, n_tokens_B=18),
-    'Qwen2.5-7B': flops(n_params_T=7, n_tokens_B=18),
+    'Qwen2.5-0.5B': flops(n_params_B=0.5, n_tokens_T=18),
+    'Qwen2.5-1.5B': flops(n_params_B=1.5, n_tokens_T=18),
+    'Qwen2.5-3B': flops(n_params_B=3, n_tokens_T=18),
+    'Qwen2.5-7B': flops(n_params_B=7, n_tokens_T=18),
     # https://huggingface.co/HuggingFaceTB/SmolLM2-135M
-    'SmolLM2-135M': flops(n_params_T=0.135, n_tokens_B=2),
+    'SmolLM2-135M': flops(n_params_B=0.135, n_tokens_T=2),
     # https://huggingface.co/HuggingFaceTB/SmolLM2-360M
-    'SmolLM2-360M': flops(n_params_T=0.36, n_tokens_B=4),
-    'SmolLM2-1.7B': flops(n_params_T=2, n_tokens_B=11),
+    'SmolLM2-360M': flops(n_params_B=0.36, n_tokens_T=4),
+    'SmolLM2-1.7B': flops(n_params_B=2, n_tokens_T=11),
     # https://arxiv.org/html/2408.00118v1 We train Gemma 2 27B on 13 trillion tokens of primarily-English data,
     # the 9B model on 8 trillion tokens, and the 2B on 2 trillion tokens
-    'gemma-2-2b': flops(n_params_T=2.6, n_tokens_B=2),
+    'gemma-2-2b': flops(n_params_B=2.6, n_tokens_T=2),
 }
 
 x_col = "Training FLOPs"
@@ -37,12 +36,16 @@ df = load_data()
 
 df.replace(
     {
-        'Nemotron-cc-2024-HQ-real-synth-mix': 'Nemotron-cc'
+        'Nemotron-cc-2024-HQ-real-synth-mix': 'Nemotron-cc-hq'
     },
     inplace=True
 )
 
-for n_tokens in ["300B", "1T", "all"]:
+for n_tokens in [
+    "300B",
+    # "1T",
+    # "all",
+]:
     df_all = df.copy()
     if n_tokens != "all":
         df_all = df_all[df_all.n_tokens == n_tokens]
@@ -83,16 +86,45 @@ for n_tokens in ["300B", "1T", "all"]:
         columns="dataset",
     )
     for col in dd.columns:
-        ax = dd.loc[:, col].dropna().plot(ax=ax, label=col, marker="*")
+        dd_plot = dd.loc[:, col].dropna()
+        ax = dd_plot.plot(ax=ax, label=col, marker="*")
+        if "Nemotron" in col:
+            for (x, y), s in zip(dd_plot.reset_index().values, [0.13, 0.4, 1.3, 1.7]):
+                ax.text(
+                    x=x * 0.68, y=y * 1.04, s=f"{s}B",
+                    #color=plt.gca().lines[-1].get_color()
+                    color="black"
+                )
 
     baselines = ["Qwen", "SmolLM2", 'EuroLLM']
     for baseline in baselines:
         df_baseline = df_baselines_flops_perf[df_baselines_flops_perf.index.str.contains(baseline)].copy()
         df_baseline.sort_values(x_col, inplace=True)
         df_baseline.plot(x=x_col, y="Avg performance", ax=ax, label=baseline, ls="--", marker="o")
-        for baseline in baselines_avg.keys():
-            if baseline not in baseline and baseline in flops_baselines:
-                ax.plot(flops_baselines[baseline], baselines_avg[baseline], 'o', label=baseline)
+
+
+        def _n_params(method: str):
+            return method.split("-")[-1]
+
+        # TODO customize offset
+        sizes = [_n_params(t) for t in df_baseline.index]
+        if baseline == "EuroLLM":
+            offset = (0.65, 1.02)
+        elif baseline == "Qwen":
+            offset = (1.15, 0.99)
+        else:
+            offset = (0.68, 0.94)
+        print(baseline, offset)
+        for (x, y), s in zip(df_baseline.values, sizes):
+            ax.text(
+                x=x * offset[0], y=y * offset[1], s=s,
+                color=plt.gca().lines[-1].get_color(),
+                # color="black"
+            )
+
+        # for baseline in baselines_avg.keys():
+        #     if baseline in flops_baselines:
+        #         ax.plot(flops_baselines[baseline], baselines_avg[baseline], 'o', label=baseline)
 
     ax.set_xscale("log")
     ax.set_ylabel(y_col)
