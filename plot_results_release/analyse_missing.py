@@ -4,7 +4,7 @@ from pathlib import Path
 import pandas as pd
 
 from evaldata_utils import load_mapping
-from figure_utils import bench_sel
+from figure_utils import bench_sel, sanitize
 
 
 def load_model_checkpoints_list():
@@ -24,14 +24,6 @@ models_checkpoints = load_model_checkpoints_list()
 df_evals, models_evals = load_model_evals()
 _, dict_mapping = load_mapping()
 
-def sanitize(x):
-    if x.endswith("run-1"):
-        x = x[:-5]
-    res = x if x.endswith("LEONARDO") else "_".join(x.split("_")[:-1])
-    res = res.replace("_", "")
-    res = res.lower()
-    assert len(res) > 0
-    return res
 
 mapping = {sanitize(k): v for k, v in dict_mapping.items()}
 
@@ -94,5 +86,6 @@ print(f"{n_missing_model_task} tasks missing saving in missing-tasks.csv")
 
 pd.DataFrame(rows).sort_values(by=["model", "n_few_shot", "task"]).to_csv("missing-tasks.csv", index=False)
 
-print(missing_checkpoint_tasks)
+for k, v in missing_checkpoint_tasks.items():
+    print(k.replace("/leonardo_work/EUHPC_E03_068/tcarsten/converted_checkpoints/", ""), v)
 print(sum(len(x) for x in missing_checkpoint_tasks.values()))
