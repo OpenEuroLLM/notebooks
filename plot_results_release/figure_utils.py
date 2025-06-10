@@ -50,11 +50,11 @@ def sanitize(x):
 
 
 def _add_hp(root, df):
-    with open(root / "mapping.json", "r") as f:
-        mapping = json.load(f)
-
-    with open("_mapping.txt", "w") as f:
-        f.write("\n".join(sorted(mapping.keys())))
+    with open(root / "log_dir_name_mapping.jsonl", "r") as f:
+        mapping_rows = []
+        for line in f:
+            mapping_rows.append(json.loads(line))
+    mapping = {row["log_file_name"]: row for row in mapping_rows}
 
     with open("_eval_models.txt", "w") as f:
         f.write("\n".join(sorted(df.model_name.unique())))
