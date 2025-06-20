@@ -41,6 +41,16 @@ df.replace(
     inplace=True
 )
 
+# read results from baseline
+df_baselines = pd.read_csv("data/results-baselines.csv.zip")
+df_baselines_pivot = df_baselines.pivot_table(
+    index="model_name", columns="benchmark", values="value"
+).loc[:, bench_sel]
+
+# compute average performance for all
+baselines_avg = df_baselines_pivot.mean(axis=1)
+df_baselines_flops_perf = pd.DataFrame({x_col: flops_baselines, "Avg performance": baselines_avg})
+
 for n_tokens in [
     "300B",
     # "1T",
@@ -69,16 +79,6 @@ for n_tokens in [
     n_tokens_mapping = {"300B": 300 * 1e9, "50B": 50 * 1e9, "1T": 1e12}
     df_avg[x_col] = 6 * df_avg["n_tokens"].apply(lambda x: n_tokens_mapping[x]) * df_avg["size"] * 1e9
 
-    # read results from baseline
-    df_baselines = pd.read_csv("data/results-baselines.csv.zip")
-    df_baselines_pivot = df_baselines.pivot_table(
-        index="model_name", columns="benchmark", values="value"
-    ).loc[:, bench_sel]
-
-    # compute average performance for all
-    baselines_avg = df_baselines_pivot.mean(axis=1)
-    df_baselines_flops_perf = pd.DataFrame({x_col: flops_baselines, "Avg performance": baselines_avg})
-
     fig, ax = plt.subplots(1, 1, figsize=(8, 4))
     dd = df_avg.pivot_table(
         index=x_col,
@@ -96,7 +96,7 @@ for n_tokens in [
                     color="black"
                 )
 
-    baselines = ["Qwen", "SmolLM2", 'EuroLLM']
+    baselines = ["Qwen2.5", "SmolLM2", 'EuroLLM']
     for baseline in baselines:
         df_baseline = df_baselines_flops_perf[df_baselines_flops_perf.index.str.contains(baseline)].copy()
         df_baseline.sort_values(x_col, inplace=True)
@@ -110,7 +110,7 @@ for n_tokens in [
         sizes = [_n_params(t) for t in df_baseline.index]
         if baseline == "EuroLLM":
             offset = (0.65, 1.02)
-        elif baseline == "Qwen":
+        elif "Qwen" in baseline:
             offset = (1.15, 0.99)
         else:
             offset = (0.68, 0.94)

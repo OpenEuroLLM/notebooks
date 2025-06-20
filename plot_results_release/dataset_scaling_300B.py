@@ -47,6 +47,7 @@ for i, (ax, size) in enumerate(zip(axes, sizes)):
     dataset_order = [x.lower() for x in dataset_order]
     # fix order to have same colors across plots
     df_iter_pivot = df_iter_pivot.loc[:, [x for x in dataset_order if x in df_iter_pivot.columns]]
+    df_iter_pivot.columns = [x.capitalize() for x in df_iter_pivot.columns]
     df_iter_pivot.plot(
         ax=ax,
     )

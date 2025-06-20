@@ -8,7 +8,7 @@ from figure_utils import bench_sel, sanitize
 
 
 def load_model_checkpoints_list():
-    with open("models-14-05.txt", "r") as f:
+    with open("model_files/models-14-05.txt", "r") as f:
         res = f.readlines()
 
     return list(sorted([Path(x).name.strip() for x in res]))

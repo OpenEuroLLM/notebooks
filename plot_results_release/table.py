@@ -42,8 +42,26 @@ df_pivot_baselines = df_baselines.pivot_table(index="model_name", columns="bench
 #bench_sel = df_pivot.columns.tolist()
 
 df_pivot_both = pd.concat([df_pivot, df_pivot_baselines]).loc[:, bench_sel]
+
+#commonsense_qa,piqa,arc_challenge,arc_easy,hellaswag,boolq
+cols = [
+    'copa',
+    'lambada_openai',
+    'openbookqa',
+    'winogrande',
+    'mmlu',
+    'commonsense_qa',
+    'piqa',
+    'hellaswag',
+    'arc_easy',
+    'arc_challenge',
+    'boolq',
+]
+df_pivot_both = df_pivot_both.loc[:, cols]
+
 df_pivot_both["AVG"] = df_pivot_both.mean(axis=1)
 df_pivot_both.sort_values(by="AVG", inplace=True, ascending=False)
+
 
 methods = [
     #'Qwen2.5-7B',
@@ -67,14 +85,14 @@ methods = [
 # copa,openbookqa,lambada_openaiwinogrande,social_iqa
 df_pivot_both.rename(columns={
     'copa': 'copa[0]',
-    'lambada_openai': "lambada_openai[0]",
+    'lambada_openai': "lambada[0]",
     'openbookqa': 'openbookqa[0]',
     'mmlu': 'mmlu[5]',
-    'winogrande': 'winogrande[10]',
-    'arc_challenge': 'arc_challenge[10]',
-    'arc_easy': 'arc_easy[10]',
+    'winogrande': 'wino[10]',
+    'arc_challenge': 'arc-challenge[10]',
+    'arc_easy': 'arc-easy[10]',
     'boolq': 'boolq[10]',
-    'commonsense_qa': 'commonsense_qa[10]',
+    'commonsense_qa': 'commonsense[10]',
     'hellaswag': 'hellaswag[10]',
     'piqa': 'piqa[10]'
 }, inplace=True)
