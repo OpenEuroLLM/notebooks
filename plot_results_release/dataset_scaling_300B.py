@@ -76,6 +76,7 @@ for i, (ax, size) in enumerate(zip(axes, sizes)):
             )
         else:
             ax.get_legend().remove()
+    ax.set_xlim(0, 3*1e11)
 fig.suptitle(f"Average performance while training for different datasets", y=0.97);
 plt.tight_layout()
 plt.show()

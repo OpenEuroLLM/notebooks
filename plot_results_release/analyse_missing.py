@@ -14,7 +14,7 @@ def load_model_checkpoints_list():
     return list(sorted([Path(x).name.strip() for x in res]))
 
 def load_model_evals():
-    path = Path(__file__).parent / "data" / "results-22-05.csv.zip"
+    path = Path(__file__).parent / "data" / "results-04-06.csv.zip"
     df_all = pd.read_csv(path)
     return df_all, list(sorted(df_all.model_name.unique()))
 
@@ -46,7 +46,7 @@ print("\n".join(intersection))
 
 
 
-df_task_model_count = df_evals.pivot_table(index="benchmark", columns="model_path", aggfunc="count", fill_value=0)["lr"].loc[bench_sel].T
+df_task_model_count = df_evals.pivot_table(index="benchmark", columns="model_path", aggfunc="count", fill_value=0)["metric"].loc[bench_sel].T
 df_task_model_count[df_task_model_count>1] = 1
 
 series_model_count = df_task_model_count.sum(axis=1)
