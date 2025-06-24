@@ -14,7 +14,7 @@ def load_model_checkpoints_list():
     return list(sorted([Path(x).name.strip() for x in res]))
 
 
-date = "24-06"
+date = "04-06"
 def load_model_evals():
     path = Path(__file__).parent / "data" / f"results-{date}.csv.zip"
     df_all = pd.read_csv(path)
@@ -59,6 +59,7 @@ df_task_model_count["sum"] = df_task_model_count.sum(axis=1)
 df_task_model_count.sort_values(by="sum", inplace=True)
 print(df_task_model_count.head())
 
+df_task_model_count.to_csv(f"available-tasks-{date}.csv")
 
 def n_few_shot(task: str):
     if 'mmlu' in task:
