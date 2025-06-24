@@ -13,8 +13,10 @@ def load_model_checkpoints_list():
 
     return list(sorted([Path(x).name.strip() for x in res]))
 
+
+date = "24-06"
 def load_model_evals():
-    path = Path(__file__).parent / "data" / "results-04-06.csv.zip"
+    path = Path(__file__).parent / "data" / f"results-{date}.csv.zip"
     df_all = pd.read_csv(path)
     return df_all, list(sorted(df_all.model_name.unique()))
 
@@ -84,7 +86,7 @@ for model, row in df_task_model_count.T.items():
 n_missing_model_task = sum(len(x) for x in missing_checkpoint_tasks.values())
 print(f"{n_missing_model_task} tasks missing saving in missing-tasks.csv")
 
-pd.DataFrame(rows).sort_values(by=["model", "n_few_shot", "task"]).to_csv("missing-tasks.csv", index=False)
+pd.DataFrame(rows).sort_values(by=["model", "n_few_shot", "task"]).to_csv(f"missing-tasks-{date}.csv", index=False)
 
 for k, v in missing_checkpoint_tasks.items():
     print(k.replace("/leonardo_work/EUHPC_E03_068/tcarsten/converted_checkpoints/", ""), v)

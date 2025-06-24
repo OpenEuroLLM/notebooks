@@ -89,7 +89,7 @@ def format_large_number(num: float):
 
 def load_data():
     root = Path(__file__).parent
-    df = pd.read_csv(root / "data/results-04-06.csv.zip")
+    df = pd.read_csv(root / "data/results-24-06.csv.zip")
     df = _add_hp(root, df)
     df["n_iter"] = df.model_path.apply(lambda x: int(x.split("_")[-1]))
     df["metric_name"] = df.apply(lambda row: row["benchmark"] + "/" + row["metric"], axis=1)
