@@ -1,9 +1,8 @@
 from pathlib import Path
 
 import pandas as pd
-import matplotlib.pyplot as plt
 
-from figure_utils import load_data, bench_sel, hp_cols
+from figure_utils import load_data, bench_sel
 
 df = load_data()
 
@@ -14,7 +13,7 @@ df.replace(
     inplace=True
 )
 df_all = df.copy()
-df_all = df_all[df_all.n_tokens == "1T"]
+df_all = df_all[(df_all.n_tokens == "1T") | (df_all.model_name == "open-sci-ref_model-1.7b_data-FineWeb-Edu-1.4T_tokenizer-GPT-NeoX_samples-300B_global_bs-1008_context-4096_schedule-WSD_lr-4e-3_warmup-25000_machine-LEONARDO_12872088")]
 
 # for all training budget and models, we take the latest value
 df_all.sort_values(by="n_iter", inplace=True)
@@ -31,9 +30,14 @@ df_pivot = df_pivot.dropna(axis=0)
 
 rename_dict = {
     "open-sci-ref_model-1.7b_data-Nemotron-cc-2024-HQ-real-synth-mix_tokenizer-GPT-NeoX_samples-1000B_global_bs-252_context-16384_rotary-1000000_schedule-WSD_lr-4e-3_warmup-25000_machine-LEONARDO_14904513": "OpenSci-ref-1.7B-nemotron-1T",
-    "open-sci-refmodel-1.7bdata-DCLMtokenizer-GPT-NeoXsamples-1000Bglobalbs-1008context-4096schedule-WSDlr-4e-3warmup-25000machine-LEONARDO": "OpenSci-ref-1.7B-DCLM-1T",
-    "open-sci-refmodel-1.7bdata-FineWeb-Edu-1.4Ttokenizer-GPT-NeoXsamples-1000Bglobalbs-1008context-4096schedule-WSDlr-4e-3warmup-25000machine-LEONARDO": "OpenSci-ref-1.7B-FineWeb-Edu-1T",
+    "open-sci-ref_model-1.7b_data-DCLM_tokenizer-GPT-NeoX_samples-1000B_global_bs-1008_context-4096_schedule-WSD_lr-4e-3_warmup-25000_machine-LEONARDO_14070018": "OpenSci-ref-1.7B-DCLM-1T",
+    "open-sci-ref_model-1.7b_data-FineWeb-Edu-1.4T_tokenizer-GPT-NeoX_samples-1000B_global_bs-1008_context-4096_schedule-WSD_lr-4e-3_warmup-25000_machine-LEONARDO_14066868": "OpenSci-ref-1.7B-FineWeb-Edu-1T",
+    "open-sci-ref_model-1.7b_data-FineWeb-Edu-1.4T_tokenizer-GPT-NeoX_samples-300B_global_bs-1008_context-4096_schedule-WSD_lr-4e-3_warmup-25000_machine-LEONARDO_12872088": "OpenSci-ref-1.7B-FineWeb-Edu-300B"
 }
+
+for m in rename_dict.keys():
+    assert m in df_all.model_name.unique(), m
+
 df_pivot = df_pivot.loc[rename_dict.keys()]
 df_pivot = df_pivot.rename(index=rename_dict)
 
@@ -62,25 +66,27 @@ df_pivot_both = df_pivot_both.loc[:, cols]
 df_pivot_both["AVG"] = df_pivot_both.mean(axis=1)
 df_pivot_both.sort_values(by="AVG", inplace=True, ascending=False)
 
-
-methods = [
+methods_token = {
     #'Qwen2.5-7B',
     #'EuroLLM-9B',
     #'Qwen2.5-3B',
-    'gemma-2-2b',
-    'Qwen2.5-1.5B',
-    'OpenSci-ref-1.7B-nemotron-1T',
-    'SmolLM2-1.7B',
-    'OpenSci-ref-1.7B-DCLM-1T',
-    'OpenSci-ref-1.7B-FineWeb-Edu-1T',
-    'SmolLM-1.7B',
+    'gemma-2-2b': 2,
+    'Qwen2.5-1.5B': 18,
+    'Qwen2.5-1.5B': 18,
+    'OpenSci-ref-1.7B-nemotron-1T': 1,
+    'SmolLM2-1.7B': 11,
+    'OpenSci-ref-1.7B-DCLM-1T': 1,
+    'OpenSci-ref-1.7B-FineWeb-Edu-1T': 1,
+    'OpenSci-ref-1.7B-FineWeb-Edu-300B': 0.3,
+    'SmolLM-1.7B': 1,
     # 'Qwen2.5-0.5B',
-    'ablation-model-fineweb-edu',
+    # TODO check
+    'ablation-model-fineweb-edu': 0.3,
     #  'SmolLM2-360M',
-    'EuroLLM-1.7B',
-    'ablation-model-c4',
-    #   'SmolLM2-135M'
-]
+    'EuroLLM-1.7B': 4,
+    # TODO check
+    'ablation-model-c4': 0.3,
+}
 
 # copa,openbookqa,lambada_openaiwinogrande,social_iqa
 df_pivot_both.rename(columns={
@@ -96,4 +102,13 @@ df_pivot_both.rename(columns={
     'hellaswag': 'hellaswag[10]',
     'piqa': 'piqa[10]'
 }, inplace=True)
-print(df_pivot_both.loc[methods].to_string(float_format="%.2f"))
+
+df_pivot_both = df_pivot_both.loc[methods_token.keys()]
+df_pivot_both["#Tokens"] = [methods_token[model] for model in df_pivot_both.index]
+
+# put #tokens first
+cols = df_pivot_both.columns.tolist()
+cols = [cols[-1]] + cols[:-1]
+df_pivot_both = df_pivot_both.loc[:, cols]
+df_pivot_both.index.name = "model"
+print(df_pivot_both.to_string(float_format="%.2f"))

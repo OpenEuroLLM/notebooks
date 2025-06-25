@@ -38,6 +38,7 @@ hp_cols = [
 
 
 def sanitize(x):
+    return x
     if x.endswith("run-1"):
         x = x[:-5]
     if "machine-LEONARDO":
@@ -49,27 +50,15 @@ def sanitize(x):
     return res
 
 
-def _add_hp(root, df):
+def _add_hp(df):
+    root = Path(__file__).parent
     with open(root / "log_dir_name_mapping.jsonl", "r") as f:
         mapping_rows = []
         for line in f:
             mapping_rows.append(json.loads(line))
-    mapping = {row["log_file_name"]: row for row in mapping_rows}
+    mapping = {str(Path(row["log_file_name"]).stem): row for row in mapping_rows}
 
-    with open("_eval_models.txt", "w") as f:
-        f.write("\n".join(sorted(df.model_name.unique())))
-
-    map_sanitize_to_original_name = {
-        sanitize(model): model for model in mapping.keys()
-    }
-    sanitize_models_mapping = [sanitize(x) for x in sorted(mapping.keys())]
-
-    # checks that all models appearing in evaluation appears in mapping.json
-    for model in df.model_name.unique():
-        if sanitize(model) not in sanitize_models_mapping:
-            print(model, sanitize(model))
-
-    df_hp = pd.DataFrame([x["config"] for x in df.apply(lambda row: mapping[map_sanitize_to_original_name[sanitize(row["model_name"])]], axis=1).tolist()])
+    df_hp = pd.DataFrame([x["config"] for x in df.apply(lambda row: mapping[row["model_name"]], axis=1).tolist()])
 
     df = pd.concat([df, df_hp], axis=1)
     return df
@@ -87,10 +76,11 @@ def format_large_number(num: float):
     else:
         return str(num)  # For smaller numbers, just return as is
 
-def load_data():
+
+def load_data(date: str | None = "25-06"):
     root = Path(__file__).parent
-    df = pd.read_csv(root / "data/results-24-06.csv.zip")
-    df = _add_hp(root, df)
+    df = pd.read_csv(root / f"data/results-{date}.csv.zip")
+    df = _add_hp(df)
     df["n_iter"] = df.model_path.apply(lambda x: int(x.split("_")[-1]))
     df["metric_name"] = df.apply(lambda row: row["benchmark"] + "/" + row["metric"], axis=1)
     df = df[df.metric_name.isin(metrics)]

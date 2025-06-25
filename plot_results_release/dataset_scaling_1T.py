@@ -12,24 +12,16 @@ df_plot = df_all.copy()
 df_plot.dataset = df_plot.dataset.apply(lambda s: s.replace('Nemotron-cc-2024-HQ-real-synth-mix', 'Nemotron-cc-hq'))
 df_plot.dataset = df_plot.dataset.str.lower()
 n_tokens = "1T"
-config = {
-    # "size": 1.7,
-    # "tokenizer": "GPT-NeoX",
-    #"global_batch_size": 1008,
-    "n_tokens": n_tokens,
-    "seq_length": 4096,
-    # "lr_decay_style": "WSD",
-    "lr_warmup_iters": 25000,
-}
-mask = None
-for key, value in config.items():
-    if mask is None:
-        mask = (df_all.loc[:, key] == value)
-    else:
-        mask &= (df_all.loc[:, key] == value)
 
 size = 1.7
-df_sub = df_plot.loc[(mask) & (df_plot.loc[:, "size"] == size)].copy()
+
+models = [
+    #'open-sci-ref_model-1.7b_data-Nemotron-cc-2024-HQ-real-synth-mix_tokenizer-GPT-NeoX_samples-1000B_global_bs-1008_context-4096_schedule-WSD_lr-4e-3_warmup-25000_machine-LEONARDO_13977373',
+    'open-sci-ref_model-1.7b_data-FineWeb-Edu-1.4T_tokenizer-GPT-NeoX_samples-1000B_global_bs-1008_context-4096_schedule-WSD_lr-4e-3_warmup-25000_machine-LEONARDO_14066868',
+    'open-sci-ref_model-1.7b_data-DCLM_tokenizer-GPT-NeoX_samples-1000B_global_bs-1008_context-4096_schedule-WSD_lr-4e-3_warmup-25000_machine-LEONARDO_14070018',
+    'open-sci-ref_model-1.7b_data-Nemotron-cc-2024-HQ-real-synth-mix_tokenizer-GPT-NeoX-2_samples-1000B_global_bs-1008_context-4096_rotary-100000_schedule-WSD_lr-4e-3_warmup-25000_machine-LEONARDO_14917488'
+]
+df_sub = df_plot[df_plot.model_name.isin(models)].copy()
 df_sub["tokens"] = df_plot["n_iter"] * 1008 * 4096
 df_iter = df_sub.pivot_table(index=["dataset", "tokens"], columns="benchmark", values="value").loc[:, bench_sel].mean(axis=1)
 

@@ -3,8 +3,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from evaldata_utils import load_mapping
-from figure_utils import bench_sel, sanitize
+from figure_utils import bench_sel
 
 
 def load_model_checkpoints_list():
@@ -14,7 +13,7 @@ def load_model_checkpoints_list():
     return list(sorted([Path(x).name.strip() for x in res]))
 
 
-date = "04-06"
+date = "25-06"
 def load_model_evals():
     path = Path(__file__).parent / "data" / f"results-{date}.csv.zip"
     df_all = pd.read_csv(path)
@@ -24,16 +23,14 @@ def load_model_evals():
 # TODO
 models_checkpoints = load_model_checkpoints_list()
 df_evals, models_evals = load_model_evals()
-_, dict_mapping = load_mapping()
 
-
-mapping = {sanitize(k): v for k, v in dict_mapping.items()}
+#mapping = {sanitize(k): v for k, v in dict_mapping.items()}
 
 with open("model-evals-14-05.txt", "w") as f:
     f.write("\n".join(models_evals))
 
-models_evals = list(set([sanitize(x) for x in models_evals]))
-models_checkpoints = list(set([sanitize(x) for x in models_checkpoints]))
+models_evals = list(set([x for x in models_evals]))
+models_checkpoints = list(set([x for x in models_checkpoints]))
 print(f"Loaded {len(models_checkpoints)} models from checkpoints")
 print(f"Loaded {len(models_evals)} models from evaluations")
 
@@ -59,6 +56,7 @@ df_task_model_count["sum"] = df_task_model_count.sum(axis=1)
 df_task_model_count.sort_values(by="sum", inplace=True)
 print(df_task_model_count.head())
 
+print(f"saving in available-tasks-{date}.csv")
 df_task_model_count.to_csv(f"available-tasks-{date}.csv")
 
 def n_few_shot(task: str):
@@ -85,7 +83,7 @@ for model, row in df_task_model_count.T.items():
             })
 
 n_missing_model_task = sum(len(x) for x in missing_checkpoint_tasks.values())
-print(f"{n_missing_model_task} tasks missing saving in missing-tasks.csv")
+print(f"{n_missing_model_task} tasks missing saving in missing-tasks-{date}.csv")
 
 pd.DataFrame(rows).sort_values(by=["model", "n_few_shot", "task"]).to_csv(f"missing-tasks-{date}.csv", index=False)
 
