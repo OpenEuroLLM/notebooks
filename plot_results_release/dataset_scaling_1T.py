@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 from figure_utils import load_data, bench_sel, hp_cols
 
-df_all = load_data()
+df_all = load_data("27-06")
 # compute average per iterationdf_sub.loc[:, ["size", "benchmark", "value"]] ".groupby("n_iter").mean()
 
 fig, ax = plt.subplots(1, 1, figsize=(6, 4), sharey=True)
@@ -19,6 +19,7 @@ models = [
     #'open-sci-ref_model-1.7b_data-Nemotron-cc-2024-HQ-real-synth-mix_tokenizer-GPT-NeoX_samples-1000B_global_bs-1008_context-4096_schedule-WSD_lr-4e-3_warmup-25000_machine-LEONARDO_13977373',
     'open-sci-ref_model-1.7b_data-FineWeb-Edu-1.4T_tokenizer-GPT-NeoX_samples-1000B_global_bs-1008_context-4096_schedule-WSD_lr-4e-3_warmup-25000_machine-LEONARDO_14066868',
     'open-sci-ref_model-1.7b_data-DCLM_tokenizer-GPT-NeoX_samples-1000B_global_bs-1008_context-4096_schedule-WSD_lr-4e-3_warmup-25000_machine-LEONARDO_14070018',
+    # "open-sci-ref_model-1.7b_data-Nemotron-cc-2024-HQ-real-synth-mix_tokenizer-GPT-NeoX_samples-1000B_global_bs-1008_context-4096_schedule-WSD_lr-4e-3_warmup-25000_machine-LEONARDO_13977373",
     'open-sci-ref_model-1.7b_data-Nemotron-cc-2024-HQ-real-synth-mix_tokenizer-GPT-NeoX-2_samples-1000B_global_bs-1008_context-4096_rotary-100000_schedule-WSD_lr-4e-3_warmup-25000_machine-LEONARDO_14917488'
 ]
 df_sub = df_plot[df_plot.model_name.isin(models)].copy()

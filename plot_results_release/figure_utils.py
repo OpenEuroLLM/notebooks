@@ -77,7 +77,7 @@ def format_large_number(num: float):
         return str(num)  # For smaller numbers, just return as is
 
 
-def load_data(date: str | None = "25-06"):
+def load_data(date: str | None = "27-06"):
     root = Path(__file__).parent
     df = pd.read_csv(root / f"data/results-{date}.csv.zip")
     df = _add_hp(df)
@@ -112,6 +112,8 @@ def load_data(date: str | None = "25-06"):
     df["size"] = df.apply(lambda row: _size(**row), axis=1)
     return df
 
+def figure_path() -> Path:
+    return Path(__file__).parent / "figures"
 
 if __name__ == '__main__':
     load_data()

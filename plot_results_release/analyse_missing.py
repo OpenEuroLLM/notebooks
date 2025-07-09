@@ -13,7 +13,7 @@ def load_model_checkpoints_list():
     return list(sorted([Path(x).name.strip() for x in res]))
 
 
-date = "25-06"
+date = "27-06"
 def load_model_evals():
     path = Path(__file__).parent / "data" / f"results-{date}.csv.zip"
     df_all = pd.read_csv(path)
@@ -43,9 +43,9 @@ intersection = sorted(set(models_checkpoints).difference(models_evals))
 print(f"\n{len(intersection)} models that have a converted checkpoint but no evaluation:")
 print("\n".join(intersection))
 
+df_evals["n_iter"] = df_evals.model_path.apply(lambda x: int(x.split("_")[-1]))
 
-
-df_task_model_count = df_evals.pivot_table(index="benchmark", columns="model_path", aggfunc="count", fill_value=0)["metric"].loc[bench_sel].T
+df_task_model_count = df_evals.pivot_table(index="benchmark", columns=["model_name", "n_iter"], aggfunc="count", fill_value=0)["metric"].loc[bench_sel].T
 df_task_model_count[df_task_model_count>1] = 1
 
 series_model_count = df_task_model_count.sum(axis=1)
@@ -85,8 +85,9 @@ for model, row in df_task_model_count.T.items():
 n_missing_model_task = sum(len(x) for x in missing_checkpoint_tasks.values())
 print(f"{n_missing_model_task} tasks missing saving in missing-tasks-{date}.csv")
 
-pd.DataFrame(rows).sort_values(by=["model", "n_few_shot", "task"]).to_csv(f"missing-tasks-{date}.csv", index=False)
+if rows:
+    pd.DataFrame(rows).sort_values(by=["model", "n_few_shot", "task"]).to_csv(f"missing-tasks-{date}.csv", index=False)
 
-for k, v in missing_checkpoint_tasks.items():
-    print(k.replace("/leonardo_work/EUHPC_E03_068/tcarsten/converted_checkpoints/", ""), v)
-print(sum(len(x) for x in missing_checkpoint_tasks.values()))
+    for k, v in missing_checkpoint_tasks.items():
+        print(k.replace("/leonardo_work/EUHPC_E03_068/tcarsten/converted_checkpoints/", ""), v)
+    print(sum(len(x) for x in missing_checkpoint_tasks.values()))
