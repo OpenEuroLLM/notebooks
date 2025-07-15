@@ -133,6 +133,6 @@ for n_tokens in [
     # df_baselines_flops_perf.plot(ax=ax, marker="x")
 
     ax.legend(ncols=1, loc="center left", bbox_to_anchor=(1.0, 0.5), )
-    ax.set_title(f"Scaling comparison with reference models trained on {n_tokens}");
+    ax.set_title(f"Scaling comparison with reference models trained on 300B and 1T tokens");
     plt.tight_layout()
     plt.show()
