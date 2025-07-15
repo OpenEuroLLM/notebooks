@@ -52,9 +52,9 @@ baselines_avg = df_baselines_pivot.mean(axis=1)
 df_baselines_flops_perf = pd.DataFrame({x_col: flops_baselines, "Avg performance": baselines_avg})
 
 for n_tokens in [
-    "300B",
+    # "300B",
     # "1T",
-    # "all",
+    "all",
 ]:
     df_all = df.copy()
     if n_tokens != "all":
@@ -89,9 +89,9 @@ for n_tokens in [
         dd_plot = dd.loc[:, col].dropna()
         ax = dd_plot.plot(ax=ax, label=col, marker="*")
         if "Nemotron" in col:
-            for (x, y), s in zip(dd_plot.reset_index().values, [0.13, 0.4, 1.3, 1.7]):
+            for (x, y), s in zip(dd_plot.reset_index().values, ["0.13B", "0.4B", "1.3B", "1.7B", "1.7B (1T)"]):
                 ax.text(
-                    x=x * 0.68, y=y * 1.04, s=f"{s}B",
+                    x=x * 0.68, y=y * 1.04, s=s,
                     #color=plt.gca().lines[-1].get_color()
                     color="black"
                 )
