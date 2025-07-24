@@ -2,6 +2,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from figure_utils import load_data, bench_sel, hp_cols
+import matplotlib.colors as mcolors
+import matplotlib.cm as cm
+import numpy as np
 
 
 def flops(n_tokens_T: float, n_params_B: float):
@@ -28,6 +31,8 @@ flops_baselines = {
     # https://arxiv.org/html/2408.00118v1 We train Gemma 2 27B on 13 trillion tokens of primarily-English data,
     # the 9B model on 8 trillion tokens, and the 2B on 2 trillion tokens
     'gemma-2-2b': flops(n_params_B=2.6, n_tokens_T=2),
+    'apple/DCLM-7B': flops(n_params_B=7, n_tokens_T=4),
+    'TRI-ML/DCLM-1B': flops(n_params_B=1.4, n_tokens_T=4),
 }
 
 x_col = "Training FLOPs"
@@ -42,21 +47,23 @@ df.replace(
 )
 
 # read results from baseline
-df_baselines = pd.read_csv("data/results-baselines.csv.zip")
+df_baselines = pd.read_csv("/p/project/laionize/marianna/megatron/notebooks/plot_results_release/data/baselines-24-07.csv.zip")
 df_baselines_pivot = df_baselines.pivot_table(
     index="model_name", columns="benchmark", values="value"
 ).loc[:, bench_sel]
+
 
 # compute average performance for all
 baselines_avg = df_baselines_pivot.mean(axis=1)
 df_baselines_flops_perf = pd.DataFrame({x_col: flops_baselines, "Avg performance": baselines_avg})
 
 for n_tokens in [
-    "300B",
+    # "300B",
     # "1T",
-    # "all",
+    "all",
 ]:
     df_all = df.copy()
+    df_all.dataset = df_all.dataset.apply(lambda x: "DCLM-open-sci" if "DCLM" in x else x)
     if n_tokens != "all":
         df_all = df_all[df_all.n_tokens == n_tokens]
 
@@ -85,9 +92,13 @@ for n_tokens in [
         values=y_col,
         columns="dataset",
     )
-    for col in dd.columns:
+
+    n_colors = len(dd.columns)
+    color_map = cm.get_cmap('tab20', n_colors)  # or 'nipy_spectral', 'hsv', 'tab10', etc.
+    colors = [mcolors.to_hex(color_map(i)) for i in range(n_colors)]
+    for col, color in zip(dd.columns, colors):
         dd_plot = dd.loc[:, col].dropna()
-        ax = dd_plot.plot(ax=ax, label=col, marker="*")
+        ax = dd_plot.plot(ax=ax, label=col, marker="*", color=color)
         if "Nemotron" in col:
             for (x, y), s in zip(dd_plot.reset_index().values, [0.13, 0.4, 1.3, 1.7]):
                 ax.text(
@@ -96,7 +107,7 @@ for n_tokens in [
                     color="black"
                 )
 
-    baselines = ["Qwen2.5", "SmolLM2", 'EuroLLM']
+    baselines = ["Qwen2.5", "SmolLM2", 'EuroLLM', "DCLM"]
     for baseline in baselines:
         df_baseline = df_baselines_flops_perf[df_baselines_flops_perf.index.str.contains(baseline)].copy()
         df_baseline.sort_values(x_col, inplace=True)
@@ -128,11 +139,12 @@ for n_tokens in [
 
     ax.set_xscale("log")
     ax.set_ylabel(y_col)
-    ax.grid()
+    ax.grid(visible=True)
 
     # df_baselines_flops_perf.plot(ax=ax, marker="x")
 
     ax.legend(ncols=1, loc="center left", bbox_to_anchor=(1.0, 0.5), )
     ax.set_title(f"Scaling comparison with reference models trained on {n_tokens}");
     plt.tight_layout()
-    plt.show()
+    # plt.show()
+    plt.savefig("/p/project/laionize/marianna/megatron/notebooks/plot_results_release/results.png")
