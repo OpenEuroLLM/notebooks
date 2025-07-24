@@ -100,9 +100,9 @@ for n_tokens in [
         dd_plot = dd.loc[:, col].dropna()
         ax = dd_plot.plot(ax=ax, label=col, marker="*", color=color)
         if "Nemotron" in col:
-            for (x, y), s in zip(dd_plot.reset_index().values, [0.13, 0.4, 1.3, 1.7]):
+            for (x, y), s in zip(dd_plot.reset_index().values, ["0.13B", "0.4B", "1.3B", "1.7B", "1.7B (1T)"]):
                 ax.text(
-                    x=x * 0.68, y=y * 1.04, s=f"{s}B",
+                    x=x * 0.68, y=y * 1.04, s=s,
                     #color=plt.gca().lines[-1].get_color()
                     color="black"
                 )
@@ -144,7 +144,7 @@ for n_tokens in [
     # df_baselines_flops_perf.plot(ax=ax, marker="x")
 
     ax.legend(ncols=1, loc="center left", bbox_to_anchor=(1.0, 0.5), )
-    ax.set_title(f"Scaling comparison with reference models trained on {n_tokens}");
+    ax.set_title(f"Scaling comparison with reference models trained on 300B and 1T tokens");
     plt.tight_layout()
     # plt.show()
     plt.savefig("/p/project/laionize/marianna/megatron/notebooks/plot_results_release/results.png")
