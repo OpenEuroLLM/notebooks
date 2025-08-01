@@ -1,9 +1,9 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from figure_utils import load_data, bench_sel, hp_cols
+from figure_utils import load_data, bench_sel, hp_cols, figure_path
 import matplotlib.colors as mcolors
-import matplotlib.cm as cm
+from matplotlib import colormaps
 import numpy as np
 
 
@@ -47,7 +47,7 @@ df.replace(
 )
 
 # read results from baseline
-df_baselines = pd.read_csv("/p/project/laionize/marianna/megatron/notebooks/plot_results_release/data/baselines-24-07.csv.zip")
+df_baselines = pd.read_csv("data/results-baselines.csv.zip")
 df_baselines_pivot = df_baselines.pivot_table(
     index="model_name", columns="benchmark", values="value"
 ).loc[:, bench_sel]
@@ -94,7 +94,7 @@ for n_tokens in [
     )
 
     n_colors = len(dd.columns)
-    color_map = cm.get_cmap('tab20', n_colors)  # or 'nipy_spectral', 'hsv', 'tab10', etc.
+    color_map = colormaps['tab20']
     colors = [mcolors.to_hex(color_map(i)) for i in range(n_colors)]
     for col, color in zip(dd.columns, colors):
         dd_plot = dd.loc[:, col].dropna()
@@ -146,5 +146,5 @@ for n_tokens in [
     ax.legend(ncols=1, loc="center left", bbox_to_anchor=(1.0, 0.5), )
     ax.set_title(f"Scaling comparison with reference models trained on 300B and 1T tokens");
     plt.tight_layout()
-    # plt.show()
-    plt.savefig("/p/project/laionize/marianna/megatron/notebooks/plot_results_release/results.png")
+    plt.show()
+    plt.savefig(figure_path() / "results-figure-scaling.png")

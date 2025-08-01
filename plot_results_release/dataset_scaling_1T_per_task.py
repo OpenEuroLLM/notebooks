@@ -91,7 +91,7 @@ fig.legend(
     loc='center right',
     bbox_to_anchor=(1.12, 0.5))
 
-fig.suptitle(f"Average performance while training for different datasets", y=0.97);
+fig.suptitle(f"Performance while training for different datasets", y=0.97);
 plt.tight_layout()
 plt.savefig(figure_path() / "1T_perf_per_dataset.png", bbox_inches='tight')
 plt.show()

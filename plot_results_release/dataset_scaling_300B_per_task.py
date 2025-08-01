@@ -90,9 +90,9 @@ for i, metric in enumerate(metrics):
 
 # Create a single legend outside the plot
 # fig.legend(lines, labels, loc='center right', bbox_to_anchor=(1.02, 0.5))
-fig.legend(lines, labels, loc='center right', bbox_to_anchor=(1.03, 0.5))
+fig.legend(lines, labels, loc='center right', bbox_to_anchor=(1.01, 0.5))
 
-fig.suptitle(f"Average performance while training for different datasets", y=0.97);
+fig.suptitle(f"Performance while training for different datasets", y=0.97);
 
 # fig.savefig('samplefigure', bbox_extra_artists=(lgd,), )
 plt.savefig(figure_path() / "300B_perf_per_dataset.png", bbox_inches='tight')

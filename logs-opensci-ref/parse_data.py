@@ -192,6 +192,7 @@ def parse_model(model_name) -> tuple[dict, pd.DataFrame]:
             if len(df_metrics) > 0:
                 df_metrics["model_name"] = model_name
                 df_metrics["jobid"] = jobid
+                df_metrics["path"] = path
                 dfs.append(df_metrics)
             else:
                 # print(f"No metrics in {path}")
@@ -216,7 +217,7 @@ def parse_model(model_name) -> tuple[dict, pd.DataFrame]:
 
 
 def load_mapping():
-    with open(file_path.parent / "notebooks/plot_results_release/log_dir_name_mapping.jsonl", "r") as f:
+    with open(file_path.parent / "plot_results_release/log_dir_name_mapping.jsonl", "r") as f:
         mapping_rows = []
         for line in f:
             mapping_rows.append(json.loads(line))
