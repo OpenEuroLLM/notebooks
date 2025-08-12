@@ -408,6 +408,7 @@ if __name__ == "__main__":
             fig.savefig(
                 os.path.join(figure_path, f"scaling_{n_tokens}.{ext}"),
                 bbox_inches="tight",
+                dpi=300,
             )
             print(
                 f"Figure saved to {os.path.join(figure_path, f'scaling_{n_tokens}.{ext}')}"
