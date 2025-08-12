@@ -33,6 +33,79 @@ def format_latex_scientific(x: float, sig: int = 2) -> str:
     return rf"${mantissa} \cdot 10^{{{exp}}}$"
 
 
+
+# - group: oellm-core-zero-shot
+#     task: 
+#       - copa
+#       - openbookqa
+#       - lambada_openai
+#       - winogrande
+#       - social_iqa
+#     num_fewshot: 0
+#     aggregate_metric_list:
+#       - metric: acc
+#   - group: oellm-core-five-shot
+#     task: 
+#       - mmlu
+#     num_fewshot: 5
+#     aggregate_metric_list:
+#       - metric: acc
+#     metadata:
+#       version: 1.0
+#   - group: oellm-core-ten-shot
+#     task: 
+#       - commonsense_qa
+#       - piqa
+#       - hellaswag
+#       - arc_easy
+#       - arc_challenge
+#       - boolq
+#     num_fewshot: 10
+#     aggregate_metric_list:
+#       - metric: acc
+
+eval_settings = {
+    "mmlu": {
+        "num_fewshot": 5
+    },
+    "copa": {
+        "num_fewshot": 0
+    },
+    "openbookqa": {
+        "num_fewshot": 0
+    },
+    "lambada_openai": {
+        "num_fewshot": 0
+    },
+    "winogrande": {
+        "num_fewshot": 0
+    },
+    "social_iqa": {
+        "num_fewshot": 0
+    },
+    "commonsense_qa": {
+        "num_fewshot": 10
+    },
+    "piqa": {
+        "num_fewshot": 10
+    },
+    "hellaswag": {
+        "num_fewshot": 10
+    },
+
+    "arc_easy": {
+        "num_fewshot": 10
+    },
+    "arc_challenge": {
+        "num_fewshot": 10
+    },
+    "boolq": {
+        "num_fewshot": 10
+    },
+}
+     
+
+
 colors = [
     "#1F77B4",  # (Blue
     "#FF7F0E",  # Orange
@@ -251,7 +324,11 @@ if __name__ == "__main__":
             .reset_index()
         )
 
-        df_os["average"] = df_os["Average downstream performance"]
+        df_os = df_os.rename(
+            columns={
+                "Average downstream performance": "average",
+            }
+        )
 
         df_baselines_pivot = df_baselines_pivot.reset_index()
         df_baselines_pivot["n_tokens"] = df_baselines_pivot["model_name"].apply(
@@ -274,16 +351,36 @@ if __name__ == "__main__":
             by=["average"]
         )
 
-        results_table = df_merged[["dataset", "n_tokens", "size", "average"]]
+        results_table = df_merged
+
+        results_table[bench_sel] = results_table[bench_sel].apply(
+            lambda x: x.round(2) if x.dtype == "float64" else x
+        )
+
+        results_table["average"] = results_table["average"].apply(
+            lambda x: round(x, 2) if isinstance(x, float) else x
+        )
+
+        columns_to_rename = {
+            "dataset": "Model",
+            "n_tokens": "Training tokens",
+            "size": "Parameters (B)",
+            "average": "Average performance",
+        }
+
+        benchmarks_settings = {
+                bench: f'{bench}[{eval_settings[bench]["num_fewshot"]}]'
+                for bench in bench_sel
+            }
+        columns_to_rename.update(
+            benchmarks_settings
+        )
 
         results_table = results_table.rename(
-            columns={
-                "dataset": "Model",
-                "n_tokens": "Training tokens",
-                "size": "Parameters (B)",
-                "average": "Average performance",
-            }
+            columns=columns_to_rename
         )
+
+        
 
         # Compute = 6 * N * D, where N is parameters (absolute count), D is tokens (absolute count)
         results_table["Compute (FLOPS)"] = (
@@ -294,19 +391,31 @@ if __name__ == "__main__":
         )
 
         # Add compute FLOPS column
-        results_table = results_table[
-            [
-                "Model",
-                "Training tokens",
-                "Parameters (B)",
-                "Compute (FLOPS)",
-                "Average performance",
-            ]
-        ]
+        # results_table = results_table[
+        #     [
+        #         "Model",
+        #         "Training tokens",
+        #         "Parameters (B)",
+        #         "Compute (FLOPS)",
+        #         "Average performance",
+        #     ]
+        # ]
+        # order by few shot benchmarks
+        bench_sel_order = sorted(list(benchmarks_settings.values()), key=lambda x: int(x.split("[")[1].split("]")[0]))
+
+        col_order = [
+            "Model",
+            "Training tokens",
+            "Parameters (B)",
+            "Compute (FLOPS)",
+        ] + bench_sel_order + ["Average performance"]
+
+        results_table = results_table[col_order]
 
         for ext in table_ext:
             print(f"Saving results table for {n_tokens} tokens in {ext} format")
             if ext == "csv":
+                print(results_table.columns)
                 results_table["Compute (FLOPS)"] = results_table[
                     "Compute (FLOPS)"
                 ].apply(
