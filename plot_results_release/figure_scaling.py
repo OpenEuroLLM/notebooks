@@ -134,8 +134,9 @@ if __name__ == "__main__":
     df.replace({"Nemotron-cc-2024-HQ-real-synth-mix": "Nemotron-cc-hq"}, inplace=True)
 
     # read results from baseline
+    current_dir = os.path.dirname(os.path.abspath(__file__))
     df_baselines = pd.read_csv(
-        "/p/project/laionize/marianna/megatron/notebooks/plot_results_release/data/baselines-24-07.csv.zip"
+        os.path.join(current_dir, "data/baselines-24-07.csv.zip")
     )
     df_baselines_pivot = df_baselines.pivot_table(
         index=["model_name"], columns="benchmark", values="value"
