@@ -118,7 +118,8 @@ if __name__ == "__main__":
         "SmolLM2-135M": flops(n_params_B=0.135, n_tokens_T=2),
         # https://huggingface.co/HuggingFaceTB/SmolLM2-360M
         "SmolLM2-360M": flops(n_params_B=0.36, n_tokens_T=4),
-        "SmolLM2-1.7B": flops(n_params_B=2, n_tokens_T=11),
+        # https://arxiv.org/pdf/2502.02737v1 for SmolLM2 numbers
+        "SmolLM2-1.7B": flops(n_params_B=1.71, n_tokens_T=11),
         # https://arxiv.org/html/2408.00118v1 We train Gemma 2 27B on 13 trillion tokens of primarily-English data,
         # the 9B model on 8 trillion tokens, and the 2B on 2 trillion tokens
         "gemma-2-2b": flops(n_params_B=2.6, n_tokens_T=2),
