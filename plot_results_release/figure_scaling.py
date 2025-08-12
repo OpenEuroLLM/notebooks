@@ -9,6 +9,27 @@ import os
 def flops(n_tokens_T: float, n_params_B: float):
     return 6 * n_tokens_T * 1e9 * n_params_B * 1e12
 
+def parse_token_budget(s) -> float:
+    """'300B = 300 * 1e9; 1T = 1e12."""
+    if isinstance(s, (int, float)):
+        return float(s)
+    s = str(s).strip().upper()
+    if s.endswith("T"):
+        return float(s[:-1]) * 1e12
+    if s.endswith("B"):
+        return float(s[:-1]) * 1e9
+    raise ValueError(f"Unexpected token format for n_tokens: {s}")
+
+def format_latex_scientific(x: float, sig: int = 2) -> str:
+    """Return '$m \\cdot 10^{e}$' with 'sig' significant digits for LaTeX."""
+    if x == 0:
+        return "$0$"
+    s = f"{x:.{sig}e}"           # e.g., '1.80e+19'
+    mantissa, exp = s.split("e")
+    mantissa = mantissa.rstrip("0").rstrip(".")
+    exp = int(exp)               # handles leading '+' and zeros
+    return rf"${mantissa} \cdot 10^{{{exp}}}$"
+
 
 colors = [
     "#1F77B4",  # (Blue
@@ -241,6 +262,18 @@ if __name__ == "__main__":
             }
         )
 
+        # Compute = 6 * N * D, where N is parameters (absolute count), D is tokens (absolute count)
+        results_table["Compute (FLOPS)"] = (
+            6
+            * results_table["Parameters (B)"].astype(float) * 1e9
+            * results_table["Training tokens"].apply(parse_token_budget)
+        )
+
+        # Add compute FLOPS column
+        results_table = results_table[
+            ["Model", "Training tokens", "Parameters (B)", "Compute (FLOPS)", "Average performance"]
+        ]
+
         for ext in table_ext:
             print(f"Saving results table for {n_tokens} tokens in {ext} format")
             if ext == "csv":
@@ -248,10 +281,14 @@ if __name__ == "__main__":
                     os.path.join(table_path, f"scaling_{n_tokens}.{ext}"), index=False
                 )
             elif ext == "latex":
-                results_table.to_latex(
+                # Format the compute column for LaTeX
+                rt = results_table.copy()
+                rt["Compute (FLOPS)"] = rt["Compute (FLOPS)"].apply(format_latex_scientific)
+                rt.to_latex(
                     os.path.join(table_path, f"scaling_{n_tokens}.{ext}"),
                     index=False,
                     float_format="%.2f",
+                    escape=False,  # allow LaTeX math strings
                 )
             elif ext == "html":
                 results_table.to_html(
@@ -263,6 +300,8 @@ if __name__ == "__main__":
                 print(
                     f"[WARNING] Unsupported table format: {ext}. Supported formats are: csv, latex, html."
                 )
+
+
 
         for col, color in zip(dd.columns, colors):
             dd_plot = dd.loc[:, col].dropna()
