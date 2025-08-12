@@ -9,6 +9,7 @@ import os
 def flops(n_tokens_T: float, n_params_B: float):
     return 6 * n_tokens_T * 1e9 * n_params_B * 1e12
 
+
 def parse_token_budget(s) -> float:
     """'300B = 300 * 1e9; 1T = 1e12."""
     if isinstance(s, (int, float)):
@@ -20,14 +21,15 @@ def parse_token_budget(s) -> float:
         return float(s[:-1]) * 1e9
     raise ValueError(f"Unexpected token format for n_tokens: {s}")
 
+
 def format_latex_scientific(x: float, sig: int = 2) -> str:
     """Return '$m \\cdot 10^{e}$' with 'sig' significant digits for LaTeX."""
     if x == 0:
         return "$0$"
-    s = f"{x:.{sig}e}"           # e.g., '1.80e+19'
+    s = f"{x:.{sig}e}"  # e.g., '1.80e+19'
     mantissa, exp = s.split("e")
     mantissa = mantissa.rstrip("0").rstrip(".")
-    exp = int(exp)               # handles leading '+' and zeros
+    exp = int(exp)  # handles leading '+' and zeros
     return rf"${mantissa} \cdot 10^{{{exp}}}$"
 
 
@@ -215,20 +217,41 @@ if __name__ == "__main__":
             columns="dataset",
         )
 
-        df_os = (
-            df[["dataset", "benchmark", "n_tokens", "size", "value"]]
-            .groupby(["dataset", "benchmark", "n_tokens", "size"])
-            .max()
+        df = (
+            df.set_index("model_name")
+            .join(
+                df_avg[["Average downstream performance"]]
+                .reset_index()
+                .set_index("model_name"),
+                how="left",
+            )
             .reset_index()
+        )
+
+        df_os = (
+            df.loc[
+                df.groupby(["dataset", "benchmark", "n_tokens", "size"])[
+                    "Average downstream performance"
+                ].idxmax()
+            ][
+                [
+                    "dataset",
+                    "benchmark",
+                    "n_tokens",
+                    "size",
+                    "value",
+                    "Average downstream performance",
+                ]
+            ]
             .pivot(
-                index=["dataset", "n_tokens", "size"],
+                index=["dataset", "n_tokens", "size", "Average downstream performance"],
                 columns="benchmark",
                 values="value",
             )
             .reset_index()
         )
 
-        df_os["average"] = df_os[df.benchmark.unique()].mean(axis=1)
+        df_os["average"] = df_os["Average downstream performance"]
 
         df_baselines_pivot = df_baselines_pivot.reset_index()
         df_baselines_pivot["n_tokens"] = df_baselines_pivot["model_name"].apply(
@@ -265,25 +288,39 @@ if __name__ == "__main__":
         # Compute = 6 * N * D, where N is parameters (absolute count), D is tokens (absolute count)
         results_table["Compute (FLOPS)"] = (
             6
-            * results_table["Parameters (B)"].astype(float) * 1e9
+            * results_table["Parameters (B)"].astype(float)
+            * 1e9
             * results_table["Training tokens"].apply(parse_token_budget)
         )
 
         # Add compute FLOPS column
         results_table = results_table[
-            ["Model", "Training tokens", "Parameters (B)", "Compute (FLOPS)", "Average performance"]
+            [
+                "Model",
+                "Training tokens",
+                "Parameters (B)",
+                "Compute (FLOPS)",
+                "Average performance",
+            ]
         ]
 
         for ext in table_ext:
             print(f"Saving results table for {n_tokens} tokens in {ext} format")
             if ext == "csv":
+                results_table["Compute (FLOPS)"] = results_table[
+                    "Compute (FLOPS)"
+                ].apply(
+                    lambda x: f"{x:.2e}"  # format as scientific notation
+                )
                 results_table.to_csv(
                     os.path.join(table_path, f"scaling_{n_tokens}.{ext}"), index=False
                 )
             elif ext == "latex":
                 # Format the compute column for LaTeX
                 rt = results_table.copy()
-                rt["Compute (FLOPS)"] = rt["Compute (FLOPS)"].apply(format_latex_scientific)
+                rt["Compute (FLOPS)"] = rt["Compute (FLOPS)"].apply(
+                    lambda x: f"{format_latex_scientific(float(x))}"  # format as scientific notation
+                )
                 rt.to_latex(
                     os.path.join(table_path, f"scaling_{n_tokens}.{ext}"),
                     index=False,
@@ -300,8 +337,6 @@ if __name__ == "__main__":
                 print(
                     f"[WARNING] Unsupported table format: {ext}. Supported formats are: csv, latex, html."
                 )
-
-
 
         for col, color in zip(dd.columns, colors):
             dd_plot = dd.loc[:, col].dropna()
