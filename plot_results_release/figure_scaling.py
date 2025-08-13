@@ -164,12 +164,12 @@ if __name__ == "__main__":
         "Qwen2.5-7B": {"n_params_B": 7, "n_tokens_T": 18},
         "SmolLM2-135M": {"n_params_B": 0.135, "n_tokens_T": 2},
         "SmolLM2-360M": {"n_params_B": 0.36, "n_tokens_T": 4},
-        "SmolLM2-1.7B": {"n_params_B": 2, "n_tokens_T": 11},
+        "SmolLM2-1.7B": {"n_params_B": 1.71, "n_tokens_T": 11},
         "gemma-2-2b": {"n_params_B": 2.6, "n_tokens_T": 2},
         "apple/DCLM-7B": {"n_params_B": 7, "n_tokens_T": 4},
         "TRI-ML/DCLM-1B": {"n_params_B": 1.4, "n_tokens_T": 4},
-        "ablation-model-fineweb-edu": {"n_params_B": 1.82, "n_tokens_T": 0.35},
-        "ablation-model-c4": {"n_params_B": 1.82, "n_tokens_T": 0.35},
+        "ablation-model-fineweb-edu": {"n_params_B": 1.7, "n_tokens_T": 0.35},
+        "ablation-model-c4": {"n_params_B": 1.7, "n_tokens_T": 0.35},
     }
 
     flops_baselines = {
@@ -196,8 +196,8 @@ if __name__ == "__main__":
         "gemma-2-2b": flops(n_params_B=2.6, n_tokens_T=2),
         "apple/DCLM-7B": flops(n_params_B=7, n_tokens_T=4),
         "TRI-ML/DCLM-1B": flops(n_params_B=1.4, n_tokens_T=4),
-        "ablation-model-fineweb-edu": flops(n_params_B=1.82, n_tokens_T=0.35),
-        "ablation-model-c4": flops(n_params_B=1.82, n_tokens_T=0.35),
+        "ablation-model-fineweb-edu": flops(n_params_B=1.7, n_tokens_T=0.35),
+        "ablation-model-c4": flops(n_params_B=1.7, n_tokens_T=0.35),
     }
 
     x_col = "Training FLOPs"
@@ -394,8 +394,8 @@ if __name__ == "__main__":
                 "Parameters (B)",
                 "Compute (FLOPS)",
             ]
-            + bench_sel_order
             + ["Average performance"]
+            + bench_sel_order
         )
 
         results_table = results_table[col_order]
