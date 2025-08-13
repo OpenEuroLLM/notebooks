@@ -280,6 +280,12 @@ if __name__ == "__main__":
             .reset_index()
         )
 
+        df = df.loc[
+            df.groupby(["dataset", "benchmark", "n_tokens", "size", "model_name"])[
+                "n_iter"
+            ].idxmax()
+        ]
+
         df_os = (
             df.loc[
                 df.groupby(["dataset", "benchmark", "n_tokens", "size"])[
@@ -302,6 +308,8 @@ if __name__ == "__main__":
             )
             .reset_index()
         )
+
+        df_os = df_os.dropna(axis=0)
 
         df_os = df_os.rename(
             columns={
