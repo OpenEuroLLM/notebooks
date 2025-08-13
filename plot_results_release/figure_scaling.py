@@ -164,7 +164,7 @@ if __name__ == "__main__":
         "Qwen2.5-7B": {"n_params_B": 7, "n_tokens_T": 18},
         "SmolLM2-135M": {"n_params_B": 0.135, "n_tokens_T": 2},
         "SmolLM2-360M": {"n_params_B": 0.36, "n_tokens_T": 4},
-        "SmolLM2-1.7B": {"n_params_B": 2, "n_tokens_T": 11},
+        "SmolLM2-1.7B": {"n_params_B": 1.71, "n_tokens_T": 11},
         "gemma-2-2b": {"n_params_B": 2.6, "n_tokens_T": 2},
         "apple/DCLM-7B": {"n_params_B": 7, "n_tokens_T": 4},
         "TRI-ML/DCLM-1B": {"n_params_B": 1.4, "n_tokens_T": 4},
