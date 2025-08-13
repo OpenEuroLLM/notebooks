@@ -33,9 +33,8 @@ def format_latex_scientific(x: float, sig: int = 2) -> str:
     return rf"${mantissa} \cdot 10^{{{exp}}}$"
 
 
-
 # - group: oellm-core-zero-shot
-#     task: 
+#     task:
 #       - copa
 #       - openbookqa
 #       - lambada_openai
@@ -45,7 +44,7 @@ def format_latex_scientific(x: float, sig: int = 2) -> str:
 #     aggregate_metric_list:
 #       - metric: acc
 #   - group: oellm-core-five-shot
-#     task: 
+#     task:
 #       - mmlu
 #     num_fewshot: 5
 #     aggregate_metric_list:
@@ -53,7 +52,7 @@ def format_latex_scientific(x: float, sig: int = 2) -> str:
 #     metadata:
 #       version: 1.0
 #   - group: oellm-core-ten-shot
-#     task: 
+#     task:
 #       - commonsense_qa
 #       - piqa
 #       - hellaswag
@@ -65,45 +64,19 @@ def format_latex_scientific(x: float, sig: int = 2) -> str:
 #       - metric: acc
 
 eval_settings = {
-    "mmlu": {
-        "num_fewshot": 5
-    },
-    "copa": {
-        "num_fewshot": 0
-    },
-    "openbookqa": {
-        "num_fewshot": 0
-    },
-    "lambada_openai": {
-        "num_fewshot": 0
-    },
-    "winogrande": {
-        "num_fewshot": 0
-    },
-    "social_iqa": {
-        "num_fewshot": 0
-    },
-    "commonsense_qa": {
-        "num_fewshot": 10
-    },
-    "piqa": {
-        "num_fewshot": 10
-    },
-    "hellaswag": {
-        "num_fewshot": 10
-    },
-
-    "arc_easy": {
-        "num_fewshot": 10
-    },
-    "arc_challenge": {
-        "num_fewshot": 10
-    },
-    "boolq": {
-        "num_fewshot": 10
-    },
+    "mmlu": {"num_fewshot": 5},
+    "copa": {"num_fewshot": 0},
+    "openbookqa": {"num_fewshot": 0},
+    "lambada_openai": {"num_fewshot": 0},
+    "winogrande": {"num_fewshot": 0},
+    "social_iqa": {"num_fewshot": 0},
+    "commonsense_qa": {"num_fewshot": 10},
+    "piqa": {"num_fewshot": 10},
+    "hellaswag": {"num_fewshot": 10},
+    "arc_easy": {"num_fewshot": 10},
+    "arc_challenge": {"num_fewshot": 10},
+    "boolq": {"num_fewshot": 10},
 }
-     
 
 
 colors = [
@@ -195,6 +168,8 @@ if __name__ == "__main__":
         "gemma-2-2b": {"n_params_B": 2.6, "n_tokens_T": 2},
         "apple/DCLM-7B": {"n_params_B": 7, "n_tokens_T": 4},
         "TRI-ML/DCLM-1B": {"n_params_B": 1.4, "n_tokens_T": 4},
+        "ablation-model-fineweb-edu": {"n_params_B": 1.82, "n_tokens_T": 0.35},
+        "ablation-model-c4": {"n_params_B": 1.82, "n_tokens_T": 0.35},
     }
 
     flops_baselines = {
@@ -221,6 +196,8 @@ if __name__ == "__main__":
         "gemma-2-2b": flops(n_params_B=2.6, n_tokens_T=2),
         "apple/DCLM-7B": flops(n_params_B=7, n_tokens_T=4),
         "TRI-ML/DCLM-1B": flops(n_params_B=1.4, n_tokens_T=4),
+        "ablation-model-fineweb-edu": flops(n_params_B=1.82, n_tokens_T=0.35),
+        "ablation-model-c4": flops(n_params_B=1.82, n_tokens_T=0.35),
     }
 
     x_col = "Training FLOPs"
@@ -234,6 +211,8 @@ if __name__ == "__main__":
     df_baselines = pd.read_csv(
         os.path.join(current_dir, "data/baselines-24-07.csv.zip")
     )
+
+    print(df_baselines.model_name.unique())
     df_baselines_pivot = df_baselines.pivot_table(
         index=["model_name"], columns="benchmark", values="value"
     ).loc[:, bench_sel]
@@ -369,18 +348,12 @@ if __name__ == "__main__":
         }
 
         benchmarks_settings = {
-                bench: f'{bench}[{eval_settings[bench]["num_fewshot"]}]'
-                for bench in bench_sel
-            }
-        columns_to_rename.update(
-            benchmarks_settings
-        )
+            bench: f'{bench}[{eval_settings[bench]["num_fewshot"]}]'
+            for bench in bench_sel
+        }
+        columns_to_rename.update(benchmarks_settings)
 
-        results_table = results_table.rename(
-            columns=columns_to_rename
-        )
-
-        
+        results_table = results_table.rename(columns=columns_to_rename)
 
         # Compute = 6 * N * D, where N is parameters (absolute count), D is tokens (absolute count)
         results_table["Compute (FLOPS)"] = (
@@ -401,14 +374,21 @@ if __name__ == "__main__":
         #     ]
         # ]
         # order by few shot benchmarks
-        bench_sel_order = sorted(list(benchmarks_settings.values()), key=lambda x: int(x.split("[")[1].split("]")[0]))
+        bench_sel_order = sorted(
+            list(benchmarks_settings.values()),
+            key=lambda x: int(x.split("[")[1].split("]")[0]),
+        )
 
-        col_order = [
-            "Model",
-            "Training tokens",
-            "Parameters (B)",
-            "Compute (FLOPS)",
-        ] + bench_sel_order + ["Average performance"]
+        col_order = (
+            [
+                "Model",
+                "Training tokens",
+                "Parameters (B)",
+                "Compute (FLOPS)",
+            ]
+            + bench_sel_order
+            + ["Average performance"]
+        )
 
         results_table = results_table[col_order]
 
