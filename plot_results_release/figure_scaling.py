@@ -386,8 +386,8 @@ if __name__ == "__main__":
                 "Parameters (B)",
                 "Compute (FLOPS)",
             ]
-            + bench_sel_order
             + ["Average performance"]
+            + bench_sel_order
         )
 
         results_table = results_table[col_order]
