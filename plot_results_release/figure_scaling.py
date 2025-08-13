@@ -263,11 +263,12 @@ if __name__ == "__main__":
         )
 
         fig, ax = plt.subplots(1, 1, figsize=(8, 4))
-        dd = df_avg.pivot_table(
-            index=x_col,
-            values=y_col,
-            columns="dataset",
-        )
+        # dd = df_avg.pivot_table(
+        #     index=x_col,
+        #     values=y_col,
+        #     columns="dataset",
+        # )
+        
 
         df = (
             df.set_index("model_name")
@@ -315,6 +316,26 @@ if __name__ == "__main__":
             columns={
                 "Average downstream performance": "average",
             }
+        )
+
+        # Compute = 6 * N * D, where N is parameters (absolute count), D is tokens (absolute count)
+        df_os["Compute (FLOPS)"] = (
+            6
+            * df_os["size"].astype(float)
+            * 1e9
+            * df_os["n_tokens"].apply(parse_token_budget)
+        )
+        
+        df_os.dataset = df_os.dataset.apply(
+            lambda x: "DCLM-open-sci" if "DCLM" in x else x
+        )
+
+        df_os = df_os[~df_os[["dataset","n_tokens"]].apply(lambda x: x[0]=="C4" and x[1]=="50B", axis=1)]
+
+        dd = df_os.pivot_table(
+            index="Compute (FLOPS)",
+            values="average",
+            columns="dataset",
         )
 
         df_baselines_pivot = df_baselines_pivot.reset_index()
