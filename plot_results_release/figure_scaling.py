@@ -341,11 +341,11 @@ if __name__ == "__main__":
         results_table = df_merged
 
         results_table[bench_sel] = results_table[bench_sel].apply(
-            lambda x: x.round(2) if x.dtype == "float64" else x
+            lambda x: x.round(3) if x.dtype == "float64" else x
         )
 
         results_table["average"] = results_table["average"].apply(
-            lambda x: round(x, 2) if isinstance(x, float) else x
+            lambda x: round(x, 3) if isinstance(x, float) else x
         )
 
         columns_to_rename = {
