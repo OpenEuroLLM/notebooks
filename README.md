@@ -3,7 +3,7 @@ Helper notebooks and tools
 
 # Helpers for open-sci-ref 0.01 release
 
-# Plotting
+## Plotting
 
 Usage example
 
