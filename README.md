@@ -1,5 +1,7 @@
-Helpers for open-sci-ref 0.01
+Helper notebooks and tools
 ===
+
+# Helpers for open-sci-ref 0.01 release
 
 # Plotting
 
