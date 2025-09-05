@@ -6,6 +6,9 @@ from figure_utils import load_data, bench_sel, hp_cols
 import argparse
 import os
 
+# Import nice plottiong settings
+import settings
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Plot figure")
 
@@ -77,10 +80,14 @@ if __name__ == "__main__":
             "CommonCorpus",
             "C4",
         ]
+        rename_map = {x.lower(): x for x in dataset_order}
         dataset_order = [x.lower() for x in dataset_order]
         # fix order to have same colors across plots
         df_iter_pivot = df_iter_pivot.loc[:, [x for x in dataset_order if x in df_iter_pivot.columns]]
-        df_iter_pivot.columns = [x.capitalize() for x in df_iter_pivot.columns]
+        
+        # rename columns to match dataset_order labels (with exact casing)
+        df_iter_pivot = df_iter_pivot.rename(columns=rename_map)
+        
         df_iter_pivot = df_iter_pivot.dropna(how="any") 
         df_iter_pivot.plot(
             ax=ax, #marker="."
@@ -92,27 +99,45 @@ if __name__ == "__main__":
         #ax.set_ylabel(f"Average performance on {len(bench_sel)} tasks");
         ax.set_ylabel(f"Average downstream performance");
         show_legend_all = False
-        if show_legend_all:
-            ax.legend(
-                #loc="lower center",
-                #loc="upper left",
-                loc="lower right",
-                ncols=1,
-            )
-        else:
-            #if i == len(axes) - 1:
-            if i == 0:
-                ax.legend(
-                    #loc="lower center",
-                    loc="upper left",
-                    #loc="lower right",
-                    ncols=1,
-                )
-            else:
-                ax.get_legend().remove()
+        # if show_legend_all:
+        #     ax.legend(
+        #         #loc="lower center",
+        #         #loc="upper left",
+        #         loc="lower right",
+        #         ncols=1,
+        #     )
+        # else:
+        #     #if i == len(axes) - 1:
+        #     if i == 0:
+        #         ax.legend(
+        #             #loc="lower center",
+        #             loc="upper left",
+        #             #loc="lower right",
+        #             ncols=1,
+        #         )
+        #     else:
+        #         ax.get_legend().remove()
+        ax.get_legend().remove()
         ax.set_xlim(0, 3*1e11)
 
-    fig.suptitle(f"Reference baseline training, 300B tokens", y=0.97);
+
+    # Make lines thicker but only in the legend
+    from copy import copy
+    handles, labels = axes[0].get_legend_handles_labels()
+    legend_lines = [copy(h) for h in handles]
+    for l in legend_lines:
+        l.set_linewidth(2.5)
+
+    fig.legend(
+        legend_lines,
+        labels,
+        loc="center",
+        ncol=8,
+        bbox_to_anchor=(0.5214, 0.94),
+        fontsize=9.6
+    )
+
+    # fig.suptitle(f"Reference baseline training, 300B tokens.", y=1.04, fontsize=13);
     plt.tight_layout()
 
 
