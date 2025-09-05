@@ -5,6 +5,9 @@ from figure_utils import load_data, bench_sel, hp_cols
 import argparse
 import os
 
+# Import nice plottiong settings
+import settings
+
 
 def flops(n_tokens_T: float, n_params_B: float):
     return 6 * n_tokens_T * 1e9 * n_params_B * 1e12
@@ -262,7 +265,7 @@ if __name__ == "__main__":
             * 1e9
         )
 
-        fig, ax = plt.subplots(1, 1, figsize=(8, 4))
+        fig, ax = plt.subplots(1, 1, figsize=(8, 4), constrained_layout=True)
         # dd = df_avg.pivot_table(
         #     index=x_col,
         #     values=y_col,
@@ -456,7 +459,18 @@ if __name__ == "__main__":
                     f"[WARNING] Unsupported table format: {ext}. Supported formats are: csv, latex, html."
                 )
 
-        for col, color in zip(dd.columns, colors):
+        dataset_order = [
+          "Nemotron-cc-hq",
+          "DCLM-open-sci",
+          "HPLT-2.0",
+          "FineWeb-Edu-1.4T",
+          "Pile",
+          "SlimPajama",
+          "CommonCorpus",
+          "C4",
+        ]
+        # Reorder dataset 
+        for col, color in zip(dataset_order, colors):
             dd_plot = dd.loc[:, col].dropna()
             ax = dd_plot.plot(ax=ax, label=col, marker="*", color=color)
             if "Nemotron" in col:
@@ -514,11 +528,43 @@ if __name__ == "__main__":
         ax.set_ylabel(y_col)
         ax.grid(visible=True)
 
-        ax.legend(
-            ncols=1,
+        # first legend: OpenSci
+        handles, labels = ax.get_legend_handles_labels()
+        open_ref_order = dataset_order
+        ext_order = baselines
+
+        open_ref = [(h,l) for h,l in zip(handles,labels) if l in open_ref_order]
+        ext = [(h,l) for h,l in zip(handles,labels) if l in ext_order]
+        
+        # replace 'DCLM-open-sci' with 'DCLM'
+        open_ref = [(h,l) if l!='DCLM-open-sci' else (h,'DCLM') for h,l in open_ref]
+
+        leg1 = ax.legend(
+            [h for h,_ in open_ref],
+            [l for _,l in open_ref],
+            title="Open-sci-ref-0.01",
             loc="center left",
-            bbox_to_anchor=(1.0, 0.5),
+            bbox_to_anchor=(1.0,0.66)
         )
+        leg1._legend_box.align = "left"   # left-align title
+        ax.add_artist(leg1)  # keep it when adding second legend
+
+        # second legend: External
+        leg2 = ax.legend(
+            [h for h,_ in ext],
+            [l for _,l in ext],
+            title="External Models",
+            loc="center left",
+            bbox_to_anchor=(1.0,0.2)
+        )
+
+
+        # ax.legend(
+        #     ncols=1,
+        #     loc="center left",
+        #     bbox_to_anchor=(1.0, 0.5),
+        # )
+        
         # ax.set_title(f"Scaling comparison with reference models trained on 300B and 1T tokens");
         plt.tight_layout()
 
@@ -527,6 +573,7 @@ if __name__ == "__main__":
                 os.path.join(figure_path, f"scaling_{n_tokens}.{ext}"),
                 bbox_inches="tight",
                 dpi=300,
+                bbox_extra_artists=(leg1, leg2),
             )
             print(
                 f"Figure saved to {os.path.join(figure_path, f'scaling_{n_tokens}.{ext}')}"

@@ -7,6 +7,9 @@ from figure_utils import load_data, bench_sel, hp_cols, metrics, figure_path
 import argparse
 import os
 
+# Import nice plottiong settings
+import settings
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Plot figure")
 
@@ -91,15 +94,21 @@ if __name__ == "__main__":
             "CommonCorpus",
             "C4",
         ]
+        rename_map = {x.lower(): x for x in dataset_order}
         dataset_order = [x.lower() for x in dataset_order]
+
         # fix order to have same colors across plots
         df_iter_pivot = df_iter_pivot.loc[:, [x for x in dataset_order if x in df_iter_pivot.columns]]
+        
+        # rename columns to match dataset_order labels (with exact casing)
+        df_iter_pivot = df_iter_pivot.rename(columns=rename_map)
+        
         plot_result = df_iter_pivot.plot(
             ax=ax,
         )
         ax.grid()
         ax.set_title(f"{size}B");
-        ax.set_xlabel("#Tokens");
+        ax.set_xlabel("Number of Tokens");
         # ax.set_xlabel("Number of iterations");
         #ax.set_ylabel(f"Average performance on {len(bench_sel)} tasks");
         if i == 0 or i == 5:
@@ -123,11 +132,13 @@ if __name__ == "__main__":
     fig.legend(
         lines,
         labels,
-        loc='center right',
-        bbox_to_anchor=(1.0, 0.5))
+        loc='center',
+        ncols=3,
+        bbox_to_anchor=(0.5, 0.96))
 
-    fig.suptitle(f"1.7B model scale, 1T tokens. Performance per eval", y=0.97);
-    fig.tight_layout(rect=[0, 0, 0.9, 0.95])  # leaves room for legend + suptitle
+    fig.suptitle(f"1.7B model scale, 1T tokens. Performance across evaluation tasks.", y=1.03, fontsize=13);
+    fig.tight_layout()
+    # fig.tight_layout(rect=[0, 0, 0.9, 0.95])  # leaves room for legend + suptitle
 
 
     for ext in figure_ext:

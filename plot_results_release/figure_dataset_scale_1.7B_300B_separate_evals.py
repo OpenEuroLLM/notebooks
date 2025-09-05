@@ -7,6 +7,9 @@ from figure_utils import load_data, bench_sel, hp_cols, metrics, figure_path
 import argparse
 import os
 
+# Import nice plottiong settings
+import settings
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Plot figure")
 
@@ -43,7 +46,7 @@ if __name__ == "__main__":
     metrics.remove("commonsense_qa/acc")
 
 
-    fig, axes = plt.subplots(2, len(bench_sel) // 2, figsize=(16, 6), sharey=False, sharex=True)
+    fig, axes = plt.subplots(2, len(metrics) // 2, figsize=(16, 6), sharey=False, sharex=True)
     axes = np.ravel(axes)
     df_plot = df_all.copy()
     df_plot.dataset = df_plot.dataset.apply(lambda s: s.replace('Nemotron-cc-2024-HQ-real-synth-mix', 'Nemotron-cc-hq'))
@@ -92,9 +95,13 @@ if __name__ == "__main__":
             "CommonCorpus",
             "C4",
         ]
+        rename_map = {x.lower(): x for x in dataset_order}
         dataset_order = [x.lower() for x in dataset_order]
         # fix order to have same colors across plots
         df_iter_pivot = df_iter_pivot.loc[:, [x for x in dataset_order if x in df_iter_pivot.columns]]
+        # rename columns to match dataset_order labels (with exact casing)
+        df_iter_pivot = df_iter_pivot.rename(columns=rename_map)
+        
         plot_result = df_iter_pivot.plot(
             ax=ax,
         )
@@ -121,13 +128,22 @@ if __name__ == "__main__":
             labels = df_iter_pivot.columns.tolist()
 
         ax.get_legend().remove()
+        ax.set_xlim([0, 3e11])
 
+    # Make lines thicker but only in the legend
+    from copy import copy
+    legend_lines = [copy(l) for l in lines]
+    for l in legend_lines:
+        l.set_linewidth(2.5)
+        
+    # plot at aces[0,-1] has ylabels overflowing to the left, adjust them
+    from matplotlib.ticker import FuncFormatter
+    axes[len(metrics)//2 - 1].yaxis.set_major_formatter(FuncFormatter(lambda x, _: f"{x:.2f}"))
 
-    # Create a single legend outside the plot
-    # fig.legend(lines, labels, loc='center right', bbox_to_anchor=(1.02, 0.5))
-    fig.legend(lines, labels, loc='center right', bbox_to_anchor=(1.01, 0.5))
+    # Create a single legend on top of the plot
+    fig.legend(legend_lines, labels, loc='center', bbox_to_anchor=(0.5, 0.96), ncols=8, fontsize=11)
 
-    fig.suptitle(f"1.7B model scale, 300B tokens. Performance per eval", y=0.97);
+    fig.suptitle(f"1.7B model scale, 300B tokens. Performance across evaluation tasks.", y=1.035, fontsize=15)
 
     for ext in figure_ext:
         fig.savefig(
