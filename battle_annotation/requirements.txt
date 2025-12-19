@@ -1,0 +1,6 @@
+numpy
+fast-langdetect
+pandas
+huggingface_hub
+jupyter
+ipywidgets
