@@ -1,8 +1,8 @@
 # quality annotation analysis
 
-Measure how much propella annotation are predictive of nemotron-cc quality annotations.
+Measure how much Propella annotation are predictive of nemotron-cc quality annotations.
 
-Eg given a dataframe like this, we use all columns but `warc_record_id` to predict `quality`.
+Eg given a dataframe like this containing both Propella and quality annotations, we use all columns but `warc_record_id` to predict `quality`.
 ```
                              warc_record_id content_integrity     content_ratio content_length                                                                                  one_sentence_description                 content_type                    business_sector  technical_content information_density content_quality audience_level commercial_bias time_sensitivity content_safety educational_value reasoning_indicators  pii_presence    regional_relevance country_relevance  quality
 0  5e730137-c560-4aeb-92e1-8d98aec5c34e          fragment  complete_content        minimal                                                                A list of timestamps with dates and times.            [structured_data]                            [other]    [non_technical]               dense            poor        general            none        evergreen           safe              none                 none        no_pii       [indeterminate]            [none]        2
@@ -12,26 +12,25 @@ Eg given a dataframe like this, we use all columns but `warc_record_id` to predi
 4  6f98c1b4-a896-4da1-a395-921b02dc8812          complete  complete_content        minimal                             Product description for a strawberry, pineapple, and lemon flavored e-liquid.              [transactional]  [retail_commerce, consumer_goods]  [basic_technical]               dense            good        general  pure_marketing  slowly_changing           safe              none                 none        no_pii  [culturally_neutral]            [none]        0
 ```
 
+The goal is to be able to assess whether relying on Propella annotations could work to provide nemotron-cc/Fine-web like 
+annotations for other languages than English.
+
 ## Installation
 
 Requires Python 3.12+. This project uses [uv](https://docs.astral.sh/uv/) for dependency management.
 
 ```bash
 # Clone the repository
-git clone <repository-url>
-cd quality-annotation
+git clone https://github.com/OpenEuroLLM/notebooks.git
+cd notebooks/quality-annotation
 
 # Install dependencies
 uv sync
-```
-
-## Usage
-
-```bash
+# run analysis
 uv run python annotate_data.py
 ```
 
-which will prints among others the accuracy/MAE of the classifer
+which will prints among others the accuracy/MAE of the classifier
 
 ```
 Accuracy: 0.4778
