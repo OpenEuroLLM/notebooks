@@ -1,11 +1,21 @@
 from pathlib import Path
 
 import ast
+import random
+
+import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
+import seaborn as sns
 from datasets import load_dataset
 from sklearn.model_selection import train_test_split
 from autogluon.tabular import TabularPredictor
-from sklearn.metrics import accuracy_score, classification_report, mean_absolute_error
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, mean_absolute_error
+
+# Set seeds for reproducibility
+SEED = 42
+random.seed(SEED)
+np.random.seed(SEED)
 
 root = Path(__file__).parent / "data"
 
@@ -19,7 +29,7 @@ LIST_COLS = [
 ]
 
 # Columns to exclude from features
-EXCLUDE_COLS = ["warc_record_id", "one_sentence_description"]
+EXCLUDE_COLS = ["warc_record_id", "one_sentence_description", "text"]
 
 
 def expand_list_columns(df: pd.DataFrame, list_cols: list[str]) -> pd.DataFrame:
@@ -61,7 +71,7 @@ def main():
 
     # load local samples of nemotron-cc to get the quality labels
     df_sample = load_dataset(
-        "spyysalo/nemotron-cc-10K-sample", columns=["warc_record_id", "label"]
+        "spyysalo/nemotron-cc-10K-sample", columns=["warc_record_id", "label", "text"]
     )["train"].to_pandas()
     df_sample = df_sample.rename(columns={"label": "quality"})
 
@@ -81,6 +91,9 @@ def main():
     # Column we want to predict
     label_col = "quality"
 
+    # Save text column before dropping for later analysis
+    text_series = df["text"].copy()
+
     # Expand list columns into binary indicators
     df = expand_list_columns(df, LIST_COLS)
 
@@ -88,15 +101,21 @@ def main():
     df = df.drop(columns=EXCLUDE_COLS)
 
     # Split data
-    df_train, df_test = train_test_split(df, test_size=0.2, random_state=42)
+    df_train, df_test = train_test_split(df, test_size=0.2, random_state=SEED)
     y_test = df_test[label_col].values
 
     print(f"Training samples: {len(df_train)}, Test samples: {len(df_test)}")
     print(f"Features: {[c for c in df_train.columns if c != label_col]}")
 
-    # Fit model with AutoGluon
-    predictor = TabularPredictor(label=label_col, path=root / "autogluon_models")
-    predictor.fit(df_train, time_limit=120, presets="medium_quality")
+    # Load existing model or train new one
+    model_path = root / "autogluon_models"
+    if model_path.exists():
+        print(f"Loading existing model from {model_path}")
+        predictor = TabularPredictor.load(str(model_path))
+    else:
+        print(f"Training new model, will save to {model_path}")
+        predictor = TabularPredictor(label=label_col, path=str(model_path))
+        predictor.fit(df_train, time_limit=120, presets="medium_quality", random_state=SEED)
 
     # Evaluate
     y_pred = predictor.predict(df_test.drop(columns=[label_col]))
@@ -106,13 +125,45 @@ def main():
     print(f"MAE: {mae:.4f}")
     print("\nClassification Report:")
     print(classification_report(y_test, y_pred))
-    print("\nAutoGluon Leaderboard:")
-    print(predictor.leaderboard(df_test))
+    # print("\nAutoGluon Leaderboard:")
+    # print(predictor.leaderboard(df_test))
 
-    # Feature importance analysis
-    print("\nFeature Importance:")
-    importance = predictor.feature_importance(df_test)
-    print(importance)
+    # Plot confusion matrix heatmap
+    cm = confusion_matrix(y_test, y_pred)
+    labels = sorted(df[label_col].unique())
+    plt.figure(figsize=(8, 6))
+    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=labels, yticklabels=labels)
+    plt.xlabel("Quality Nemotron-cc ensemble")
+    plt.ylabel("Predicted Quality from Propella features")
+    plt.title("Confusion Matrix: Nemotron vs Predicted Quality")
+    plt.tight_layout()
+    plt.savefig(root / "confusion_matrix.png", dpi=150)
+    # plt.show()
+    print(f"\nConfusion matrix saved to {root / 'confusion_matrix.png'}")
+
+    # print("\nFeature Importance:")
+    # importance = predictor.feature_importance(df_test)
+    # print(importance)
+
+    # Save misclassified texts for analysis
+    test_indices = df_test.index
+    test_texts = text_series.loc[test_indices].values
+
+    # Predicted 0 but actual 4 (under-predicted high quality)
+    mask_pred0_actual4 = (y_pred == 0) & (y_test == 4)
+    texts_pred0_actual4 = test_texts[mask_pred0_actual4]
+    with open(root / "misclassified_pred0_actual4.txt", "w") as f:
+        for i, text in enumerate(texts_pred0_actual4):
+            f.write(f"=== Sample {i+1} ===\n{text}\n\n")
+    print(f"\nSaved {len(texts_pred0_actual4)} texts with pred=0, actual=4 to {root / 'misclassified_pred0_actual4.txt'}")
+
+    # Predicted 4 but actual 0 (over-predicted low quality)
+    mask_pred4_actual0 = (y_pred == 4) & (y_test == 0)
+    texts_pred4_actual0 = test_texts[mask_pred4_actual0]
+    with open(root / "misclassified_pred4_actual0.txt", "w") as f:
+        for i, text in enumerate(texts_pred4_actual0):
+            f.write(f"=== Sample {i+1} ===\n{text}\n\n")
+    print(f"Saved {len(texts_pred4_actual0)} texts with pred=4, actual=0 to {root / 'misclassified_pred4_actual0.txt'}")
 
 
 # %%
