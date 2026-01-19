@@ -115,7 +115,7 @@ def main():
     else:
         print(f"Training new model, will save to {model_path}")
         predictor = TabularPredictor(label=label_col, path=str(model_path))
-        predictor.fit(df_train, time_limit=120, presets="medium_quality", random_state=SEED)
+        predictor.fit(df_train, time_limit=600, presets="best")
 
     # Evaluate
     y_pred = predictor.predict(df_test.drop(columns=[label_col]))
@@ -125,6 +125,7 @@ def main():
     print(f"MAE: {mae:.4f}")
     print("\nClassification Report:")
     print(classification_report(y_test, y_pred))
+
     # print("\nAutoGluon Leaderboard:")
     # print(predictor.leaderboard(df_test))
 
