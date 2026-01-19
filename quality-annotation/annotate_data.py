@@ -115,7 +115,7 @@ def main():
     else:
         print(f"Training new model, will save to {model_path}")
         predictor = TabularPredictor(label=label_col, path=str(model_path))
-        predictor.fit(df_train, time_limit=600, presets="best")
+        predictor.fit(df_train, time_limit=120, presets="medium_quality")
 
     # Evaluate
     y_pred = predictor.predict(df_test.drop(columns=[label_col]))
