@@ -26,4 +26,5 @@ dependencies = [
     "umap-learn>=0.5.9.post2",
     "wandb>=0.20.1",
     "huggingface-hub>=0.23.0",
+    "bertopic>=0.17.4",
 ]
