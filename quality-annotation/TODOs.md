@@ -27,10 +27,22 @@ be dataset, hue should be quality, title should be "Document quality count per d
 * generate a plot with 2 columns and one row per columns
 
 
-- [ ] check quality histogram on nemotron-cc, hplt-3 and fw-edu-2
-  - [ ] all datasets loaded with `from datasets import load_dataset`
-  - [ ] compute histogram on columns values like in analyse_data.py and store values in csv
-  - [ ] plot of histogram for percentage and proportion
+- [x] check quality histogram on nemotron-cc, hplt-3 and fw-edu-2
+  - [x] all datasets loaded via HF datasets-server API (avoids downloading full datasets)
+  - [x] compute histogram on columns values and store values in csv in data/analysis folder
+  - [x] plot of histogram for percentage and proportion
+
+Files created:
+- `column_analysis.py` - loads datasets using HF `load_dataset` with streaming, computes histograms in batches, and generates plots
+- `data/analysis/{config}_{split}/histogram.csv` - histogram data for each dataset (7 datasets total)
+- `figures/content_quality_analysis.pdf` - content quality analysis (and other columns)
+- `figures/all_columns_analysis.pdf` - grid plot with all key columns
+
+Notes:
+- Uses `load_dataset` with `streaming=True` to avoid loading entire datasets into memory
+- Batch processing with batch_size=10,000 rows
+- Ordered column values with viridis colormap (best/positive values first)
+- Skips histogram computation if CSV already exists
 
 
 ## Classifier
@@ -58,5 +70,3 @@ Files created:
 - `predict_propella_quality.py` - classifier script
 - `figures/propella_quality_confusion_matrix.pdf` - confusion matrix visualization
 - `figures/propella_quality_feature_importance.pdf` - feature importance plot
-
-Notes:
