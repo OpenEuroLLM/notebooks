@@ -222,7 +222,7 @@ def latest_iteration_table(
 def plot_iteration(
     baby_csv: str = BABY_CSV,
     scores_parquet: str = SCORES_PARQUET,
-    output_path: str = "iteration_plot.pdf",
+    output_path: str = "iteration_plot.png",
 ):
     """Plot average downstream performance vs. #tokens trained for a group of
     models with intermediate checkpoints (ITERATION_MODELS), overlaid with
