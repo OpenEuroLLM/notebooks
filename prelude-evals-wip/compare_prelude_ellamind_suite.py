@@ -164,11 +164,9 @@ def build_parquet_wide(df: pd.DataFrame, resolution: dict[str, tuple]) -> pd.Dat
 
 
 # eval_results_baby_all.csv has no tokens_trained column, only training step
-# ("iter_XXXXXXX"). The baby checkpoints come from the same oellm-autoexp project
-# as the oellm_datamix_* models in scores.parquet, which all report exactly
-# 4,194,304 tokens/step (batch_size * seq_len). We assume the same constant here;
-# if baby's actual batch size/seq len differ, this conversion should be adjusted.
-PRELUDE_TOKENS_PER_STEP = 4_194_304
+# ("iter_XXXXXXX"). Prelude (baby) trains with global batch size 4096 and
+# sequence length 2048, i.e. 8,388,608 tokens/step.
+PRELUDE_TOKENS_PER_STEP = 4096 * 2048
 
 ITERATION_MODELS = ["Apertus 8B", "OELLM datamix 9B 60-40", "Olmo 3 7B"]
 FLAT_MODELS = [
