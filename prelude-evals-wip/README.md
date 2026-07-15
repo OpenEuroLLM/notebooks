@@ -35,7 +35,7 @@ per model.
 
 ## Downstream performance vs. tokens trained
 
-[iteration_plot.pdf](iteration_plot.pdf)
+[iteration_plot.png](iteration_plot.png)
 
 ## Results (latest checkpoint per model, sorted by average)
 
