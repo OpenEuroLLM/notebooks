@@ -39,7 +39,7 @@ per model.
 
 ## Results (latest checkpoint per model, sorted by average)
 
-Note that the prelude model has only been trained for 2 trillions tokens and not been annealed (which usually leads to large downstream performance gain) as the model is still being trained.
+Note that the prelude model has only been trained for 4 trillions tokens and not been annealed (which usually leads to large downstream performance gain) as the model is still being trained.
 
 | model | agieval_lsat_ar | arc_challenge | arc_easy | coqa | gsm8k | hellaswag | jeopardy | lambada_openai | mbpp | mmlu | piqa | social_iqa | squadv2 | winogrande | average |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
