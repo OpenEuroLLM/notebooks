@@ -125,5 +125,6 @@ openeurollm/datamix-9b-80-20/iter_0860000
 openeurollm/datamix-9b-80-20/iter_0910000
 openeurollm/datamix-9b-80-20/iter_0950000
 nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16
-Qwen/Qwen3-8B
+Qwen/Qwen3-8B-Base
+Qwen/Qwen3.5-9B-Base
 meta-llama/Llama-3.1-8B
