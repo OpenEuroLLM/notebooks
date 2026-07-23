@@ -141,6 +141,12 @@ def main():
     df = pd.read_csv(RESULTS_CSV)
     df["tokens_B"] = df.apply(compute_tokens_b, axis=1)
 
+    completion = df.pivot_table(index=["data", "iter"], columns="task", values="score", aggfunc="count", fill_value=0)
+    n_checkpoints = completion.shape[0]
+    n_tasks = completion.shape[1]
+    pct_done = completion.values.mean() * 100
+    print(f"{len(df)} evaluations collected across {n_checkpoints} checkpoints and {n_tasks} tasks, currently {pct_done:.1f}% done.")
+
     pivot = df.pivot_table(
         index=["data", "iter", "tokens_B"],
         columns="benchmark",
