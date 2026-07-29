@@ -13,22 +13,29 @@ import re
 import matplotlib.pyplot as plt
 import pandas as pd
 
-# dataviz skill categorical palette (fixed order, light mode)
+# matplotlib Set3 qualitative colormap, one color per method/model
 CATEGORICAL_COLORS = [
-    "#2a78d6",  # blue
-    "#eb6834",  # orange
-    "#1baf7a",  # aqua
-    "#eda100",  # yellow
-    "#e87ba4",  # magenta
-    "#008300",  # green
-    "#4a3aa7",  # violet
-    "#e34948",  # red
+    "#8dd3c7",
+    "#ffffb3",
+    "#bebada",
+    "#fb8072",
+    "#80b1d3",
+    "#fdb462",
+    "#b3de69",
+    "#fccde5",
+    "#d9d9d9",
+    "#bc80bd",
+    "#ccebc5",
+    "#ffed6f",
 ]
 GRIDLINE_COLOR = "#e1e0d9"
 
 # bleu/chrf++ live on a different (0-100) scale and would distort the
 # average; acc/acc_norm/exact_match are all in [0, 1] so they mix fine
 ACCURACY_METRICS = {"acc", "acc_norm", "exact_match"}
+
+# PolyMath is excluded since it's not suited for base pretrained models
+EXCLUDED_TASKS = ["PolyMath"]
 
 # tokens per training iteration = seq_len * global_batch_size
 TOKENS_PER_ITER = {
@@ -40,6 +47,85 @@ TOKENS_PER_ITER = {
 APERTUS_TOKENS_RE = re.compile(r"tokens(\d+(?:\.\d+)?)([BT])")
 ITER_RE = re.compile(r"iter_(\d+)")
 OLMO_STEP_RE = re.compile(r"stage1-step(\d+)")
+
+# language code/name (2-letter, 3-letter, or full lowercase name as used in
+# task strings) -> (display name, flag emoji)
+LANGUAGE_INFO = {
+    "bg": ("Bulgarian", "🇧🇬"), "bul": ("Bulgarian", "🇧🇬"), "bulgarian": ("Bulgarian", "🇧🇬"),
+    "cs": ("Czech", "🇨🇿"), "ces": ("Czech", "🇨🇿"),
+    "da": ("Danish", "🇩🇰"), "dan": ("Danish", "🇩🇰"),
+    "de": ("German", "🇩🇪"), "deu": ("German", "🇩🇪"), "german": ("German", "🇩🇪"),
+    "el": ("Greek", "🇬🇷"), "ell": ("Greek", "🇬🇷"), "greek": ("Greek", "🇬🇷"),
+    "es": ("Spanish", "🇪🇸"), "spa": ("Spanish", "🇪🇸"), "spanish": ("Spanish", "🇪🇸"),
+    "et": ("Estonian", "🇪🇪"), "est": ("Estonian", "🇪🇪"), "ekk": ("Estonian", "🇪🇪"), "estonian": ("Estonian", "🇪🇪"),
+    "fi": ("Finnish", "🇫🇮"), "fin": ("Finnish", "🇫🇮"), "finnish": ("Finnish", "🇫🇮"),
+    "fr": ("French", "🇫🇷"), "fra": ("French", "🇫🇷"), "french": ("French", "🇫🇷"),
+    "hu": ("Hungarian", "🇭🇺"), "hun": ("Hungarian", "🇭🇺"), "hungarian": ("Hungarian", "🇭🇺"),
+    "is": ("Icelandic", "🇮🇸"), "isl": ("Icelandic", "🇮🇸"),
+    "it": ("Italian", "🇮🇹"), "ita": ("Italian", "🇮🇹"), "italian": ("Italian", "🇮🇹"),
+    "lt": ("Lithuanian", "🇱🇹"), "lit": ("Lithuanian", "🇱🇹"), "lithuanian": ("Lithuanian", "🇱🇹"),
+    "lv": ("Latvian", "🇱🇻"), "lav": ("Latvian", "🇱🇻"), "lvs": ("Latvian", "🇱🇻"),
+    "nb": ("Norwegian", "🇳🇴"), "nob": ("Norwegian", "🇳🇴"), "no": ("Norwegian", "🇳🇴"), "nno": ("Norwegian", "🇳🇴"),
+    "nl": ("Dutch", "🇳🇱"), "nld": ("Dutch", "🇳🇱"), "dutch": ("Dutch", "🇳🇱"),
+    "pl": ("Polish", "🇵🇱"), "pol": ("Polish", "🇵🇱"), "polish": ("Polish", "🇵🇱"),
+    "pt": ("Portuguese", "🇵🇹"), "por": ("Portuguese", "🇵🇹"), "portuguese": ("Portuguese", "🇵🇹"),
+    "ro": ("Romanian", "🇷🇴"), "ron": ("Romanian", "🇷🇴"),
+    "sk": ("Slovak", "🇸🇰"), "slk": ("Slovak", "🇸🇰"),
+    "sl": ("Slovenian", "🇸🇮"), "slv": ("Slovenian", "🇸🇮"),
+    "sv": ("Swedish", "🇸🇪"), "swe": ("Swedish", "🇸🇪"),
+    "ca": ("Catalan", "🇪🇸"), "cat": ("Catalan", "🇪🇸"),
+    "en": ("English", "🇬🇧"), "eng": ("English", "🇬🇧"),
+    "eu": ("Basque", "🇪🇸"), "eus": ("Basque", "🇪🇸"), "basque": ("Basque", "🇪🇸"),
+    "gl": ("Galician", "🇪🇸"), "glg": ("Galician", "🇪🇸"),
+    "sr": ("Serbian", "🇷🇸"), "srp": ("Serbian", "🇷🇸"), "hbs": ("Serbian", "🇷🇸"), "serbian": ("Serbian", "🇷🇸"),
+    "he": ("Hebrew", "🇮🇱"),
+    "ru": ("Russian", "🇷🇺"), "russian": ("Russian", "🇷🇺"),
+    "tr": ("Turkish", "🇹🇷"), "tur": ("Turkish", "🇹🇷"), "turkish": ("Turkish", "🇹🇷"),
+    "uk": ("Ukrainian", "🇺🇦"), "ukr": ("Ukrainian", "🇺🇦"), "ukrainian": ("Ukrainian", "🇺🇦"),
+    "hr": ("Croatian", "🇭🇷"), "hrv": ("Croatian", "🇭🇷"), "croatian": ("Croatian", "🇭🇷"),
+    "als": ("Albanian", "🇦🇱"), "sqi": ("Albanian", "🇦🇱"), "albanian": ("Albanian", "🇦🇱"),
+    "bos": ("Bosnian", "🇧🇦"),
+    "gle": ("Irish", "🇮🇪"),
+    "kat": ("Georgian", "🇬🇪"), "georgian": ("Georgian", "🇬🇪"),
+    "mkd": ("North Macedonian", "🇲🇰"), "north macedonian": ("North Macedonian", "🇲🇰"),
+    "mlt": ("Maltese", "🇲🇹"),
+    "armenian": ("Armenian", "🇦🇲"),
+    "azerbaijani": ("Azerbaijani", "🇦🇿"),
+    "belarusian": ("Belarusian", "🇧🇾"),
+}
+
+
+def task_language_code(benchmark, task):
+    """Extract the raw language code/name embedded in a task string. Each
+    benchmark encodes it in a different position (2-letter, 3-letter+script,
+    or a full lowercase name), so this dispatches per benchmark."""
+    if benchmark in ("ARC Challenge_mt", "Global MGSM", "GlobalMMLU", "Mgsm", "MultiBlimp", "xHellaswag"):
+        return task.rsplit("_", 1)[-1]
+    if benchmark in ("BeleBele", "PolyMath", "SIB-200", "Xcsqa"):
+        return task.split("_")[1]
+    if benchmark == "Flores-200":
+        left, right = task.split(":", 1)[1].split("-")
+        left_code, right_code = left.split("_")[0], right.split("_")[0]
+        return right_code if left_code == "eng" else left_code
+    if benchmark == "INCLUDE":
+        return task.split("include_base_44_", 1)[-1]
+    if benchmark == "OpenSubtitles":
+        parts = task.split("_")  # opensubtitles_multi40_<src>_to_<tgt>
+        src, tgt = parts[2], parts[4]
+        return tgt if src == "en" else src
+    if benchmark == "XCOPA":
+        return task.split(":", 1)[1]
+    if benchmark == "global PIQA":
+        return task.split("_")[3]
+    return None
+
+
+def resolve_language(benchmark, task):
+    code = task_language_code(benchmark, task)
+    if code is None:
+        return None
+    info = LANGUAGE_INFO.get(code.lower())
+    return info[0] if info else None
 
 
 def compute_tokens_b(row):
@@ -90,9 +176,12 @@ def minmax_normalize_scores(df):
     return df.drop(columns=["lo", "hi"])
 
 
+FIGURES_DIR = "figures"
+
+
 def plot_performance_vs_tokens(
     avg_df,
-    output_path="avg_performance_vs_tokens.png",
+    output_name="avg_performance_vs_tokens",
     ylabel="Average downstream performance",
     title="Downstream performance vs. tokens trained",
 ):
@@ -125,8 +214,12 @@ def plot_performance_vs_tokens(
     ax.grid(True, color=GRIDLINE_COLOR)
     ax.legend(loc="best", fontsize=8)
     fig.tight_layout()
-    fig.savefig(output_path, dpi=150)
-    print(f"\nWrote {output_path}")
+
+    os.makedirs(FIGURES_DIR, exist_ok=True)
+    for ext in ("png", "pdf"):
+        path = os.path.join(FIGURES_DIR, f"{output_name}.{ext}")
+        fig.savefig(path, dpi=150)
+        print(f"\nWrote {path}")
 
 
 RESULTS_CSV = "results.csv"
@@ -139,7 +232,9 @@ def main():
             f"{RESULTS_CSV} not found. Download it with:\n  {DOWNLOAD_CMD}"
         )
     df = pd.read_csv(RESULTS_CSV)
+    df = df[~df["benchmark"].isin(EXCLUDED_TASKS)]
     df["tokens_B"] = df.apply(compute_tokens_b, axis=1)
+    df["language"] = df.apply(lambda row: resolve_language(row["benchmark"], row["task"]), axis=1)
 
     completion = df.pivot_table(index=["data", "iter"], columns="task", values="score", aggfunc="count", fill_value=0)
     n_checkpoints = completion.shape[0]
@@ -167,11 +262,20 @@ def main():
     avg_df = average_downstream_performance(accuracy_df)
     plot_performance_vs_tokens(avg_df)
 
+    belebele_df = accuracy_df[accuracy_df["benchmark"] == "BeleBele"]
+    avg_belebele_df = average_downstream_performance(belebele_df)
+    plot_performance_vs_tokens(
+        avg_belebele_df,
+        output_name="avg_performance_vs_tokens_belebele",
+        ylabel="Average BeleBele performance",
+        title="BeleBele performance vs. tokens trained",
+    )
+
     normalized_df = minmax_normalize_scores(df)
     avg_norm_df = average_downstream_performance(normalized_df, value_col="score_norm")
     plot_performance_vs_tokens(
         avg_norm_df,
-        output_path="normalized_overall_performance.png",
+        output_name="normalized_overall_performance",
         ylabel="Normalized average downstream performance (min-max, all metrics)",
         title="Normalized downstream performance vs. tokens trained",
     )
