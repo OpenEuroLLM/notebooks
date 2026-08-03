@@ -223,6 +223,7 @@ def plot_performance_vs_tokens(
 
 
 RESULTS_CSV = "results.csv"
+EXTRA_RESULTS_CSVS = ["results-apertus.csv"]
 DOWNLOAD_CMD = "scp lumi:/scratch/project_465002530/users/haider/ML_Evals/campaigns/oellm_public_v2/results.csv ."
 
 
@@ -231,7 +232,11 @@ def main():
         raise FileNotFoundError(
             f"{RESULTS_CSV} not found. Download it with:\n  {DOWNLOAD_CMD}"
         )
-    df = pd.read_csv(RESULTS_CSV)
+    dfs = [pd.read_csv(RESULTS_CSV)]
+    for path in EXTRA_RESULTS_CSVS:
+        if os.path.exists(path):
+            dfs.append(pd.read_csv(path))
+    df = pd.concat(dfs, ignore_index=True)
     df = df[~df["benchmark"].isin(EXCLUDED_TASKS)]
     df["tokens_B"] = df.apply(compute_tokens_b, axis=1)
     df["language"] = df.apply(lambda row: resolve_language(row["benchmark"], row["task"]), axis=1)
