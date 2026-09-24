@@ -1,0 +1,184 @@
+model_path,size,data,lr,gbsz,beta2,seed,schedule,tokens_B,iter,benchmark,task,n_shot,metric,score
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,ARC Challenge_mt,arc_challenge_mt_bg,0,acc_norm,0.42065
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,ARC Challenge_mt,arc_challenge_mt_cs,0,acc_norm,0.40188
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,ARC Challenge_mt,arc_challenge_mt_da,0,acc_norm,0.42577
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,ARC Challenge_mt,arc_challenge_mt_de,0,acc_norm,0.43259
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,ARC Challenge_mt,arc_challenge_mt_el,0,acc_norm,0.42235
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,ARC Challenge_mt,arc_challenge_mt_es,0,acc_norm,0.45478
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,ARC Challenge_mt,arc_challenge_mt_et,0,acc_norm,0.39164
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,ARC Challenge_mt,arc_challenge_mt_fi,0,acc_norm,0.40358
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,ARC Challenge_mt,arc_challenge_mt_fr,0,acc_norm,0.45734
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,ARC Challenge_mt,arc_challenge_mt_hu,0,acc_norm,0.42662
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,ARC Challenge_mt,arc_challenge_mt_it,0,acc_norm,0.47867
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,ARC Challenge_mt,arc_challenge_mt_lt,0,acc_norm,0.4087
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,ARC Challenge_mt,arc_challenge_mt_lv,0,acc_norm,0.38737
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,ARC Challenge_mt,arc_challenge_mt_nb,0,acc_norm,0.44625
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,ARC Challenge_mt,arc_challenge_mt_nl,0,acc_norm,0.44369
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,ARC Challenge_mt,arc_challenge_mt_pl,0,acc_norm,0.42065
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,ARC Challenge_mt,arc_challenge_mt_pt,0,acc_norm,0.4471
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,ARC Challenge_mt,arc_challenge_mt_ro,0,acc_norm,0.44283
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,ARC Challenge_mt,arc_challenge_mt_sk,0,acc_norm,0.42918
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,ARC Challenge_mt,arc_challenge_mt_sl,0,acc_norm,0.41553
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,ARC Challenge_mt,arc_challenge_mt_sv,0,acc_norm,0.42321
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,BeleBele,belebele_bul_Cyrl,5,acc,0.73
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,BeleBele,belebele_ces_Latn,5,acc,0.72667
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,BeleBele,belebele_dan_Latn,5,acc,0.74778
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,BeleBele,belebele_deu_Latn,5,acc,0.76222
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,BeleBele,belebele_ell_Grek,5,acc,0.74222
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,BeleBele,belebele_eng_Latn,5,acc,0.78444
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,BeleBele,belebele_est_Latn,5,acc,0.72889
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,BeleBele,belebele_fin_Latn,5,acc,0.73556
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,BeleBele,belebele_fra_Latn,5,acc,0.75778
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,BeleBele,belebele_hrv_Latn,5,acc,0.72556
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,BeleBele,belebele_hun_Latn,5,acc,0.75333
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,BeleBele,belebele_ita_Latn,5,acc,0.71889
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,BeleBele,belebele_lit_Latn,5,acc,0.70889
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,BeleBele,belebele_lvs_Latn,5,acc,0.72889
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,BeleBele,belebele_nld_Latn,5,acc,0.75222
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,BeleBele,belebele_nob_Latn,5,acc,0.74556
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,BeleBele,belebele_pol_Latn,5,acc,0.70667
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,BeleBele,belebele_por_Latn,5,acc,0.75333
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,BeleBele,belebele_ron_Latn,5,acc,0.74444
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,BeleBele,belebele_slk_Latn,5,acc,0.73
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,BeleBele,belebele_slv_Latn,5,acc,0.73667
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,BeleBele,belebele_spa_Latn,5,acc,0.73778
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,BeleBele,belebele_swe_Latn,5,acc,0.74111
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,Global MGSM,global_mgsm_ca,0,exact_match,0.04
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,Global MGSM,global_mgsm_cs,0,exact_match,0.02
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,Global MGSM,global_mgsm_de,0,exact_match,0.0
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,Global MGSM,global_mgsm_el,0,exact_match,0.016
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,Global MGSM,global_mgsm_en,0,exact_match,0.016
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,Global MGSM,global_mgsm_es,0,exact_match,0.028
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,Global MGSM,global_mgsm_eu,0,exact_match,0.016
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,Global MGSM,global_mgsm_fr,0,exact_match,0.02
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,Global MGSM,global_mgsm_gl,0,exact_match,0.036
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,Global MGSM,global_mgsm_hu,0,exact_match,0.068
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_cs_stem,5,acc,0.4732
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_de_stem,5,acc,0.4602
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_el_stem,5,acc,0.4621
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_en_stem,5,acc,0.49604
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_es_stem,5,acc,0.47923
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_fr_stem,5,acc,0.47986
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_it_stem,5,acc,0.4824
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_lt_stem,5,acc,0.46908
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_nl_stem,5,acc,0.48398
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_pl_stem,5,acc,0.4751
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_pt_stem,5,acc,0.46939
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_ro_stem,5,acc,0.47827
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_sr_stem,5,acc,0.46844
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_sv_stem,5,acc,0.47891
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_tr_stem,5,acc,0.45512
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_uk_stem,5,acc,0.46464
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,INCLUDE,include_base_44_albanian,0,acc,0.60436
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,INCLUDE,include_base_44_basque,0,acc,0.344
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,INCLUDE,include_base_44_bulgarian,0,acc,0.47091
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,INCLUDE,include_base_44_croatian,0,acc,0.49091
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,INCLUDE,include_base_44_dutch,0,acc,0.51724
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,INCLUDE,include_base_44_estonian,0,acc,0.4375
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,INCLUDE,include_base_44_finnish,0,acc,0.37024
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,INCLUDE,include_base_44_french,0,acc,0.46062
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,INCLUDE,include_base_44_georgian,0,acc,0.26
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,INCLUDE,include_base_44_german,0,acc,0.44604
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,INCLUDE,include_base_44_greek,0,acc,0.42029
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,INCLUDE,include_base_44_hungarian,0,acc,0.38545
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,INCLUDE,include_base_44_italian,0,acc,0.4854
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,INCLUDE,include_base_44_lithuanian,0,acc,0.44382
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,INCLUDE,include_base_44_polish,0,acc,0.44343
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,INCLUDE,include_base_44_portuguese,0,acc,0.41198
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,INCLUDE,include_base_44_serbian,0,acc,0.48727
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,INCLUDE,include_base_44_spanish,0,acc,0.53091
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,INCLUDE,include_base_44_turkish,0,acc,0.42336
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,INCLUDE,include_base_44_ukrainian,0,acc,0.41636
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_bg_to_en,0,bleu,13.44098
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_cs_to_en,0,bleu,17.49913
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_da_to_en,0,bleu,26.65207
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_el_to_en,0,bleu,19.51414
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_en_to_bg,0,bleu,8.52937
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_en_to_cs,0,bleu,7.68653
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_en_to_da,0,bleu,21.66186
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_en_to_de,0,bleu,13.48033
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_en_to_el,0,bleu,15.08369
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_en_to_es,0,bleu,14.93172
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_en_to_et,0,bleu,10.7433
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_en_to_fi,0,bleu,10.04924
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_en_to_fr,0,bleu,12.74813
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_en_to_hr,0,bleu,16.51839
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_en_to_hu,0,bleu,3.89119
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_en_to_it,0,bleu,12.20271
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_en_to_lt,0,bleu,7.35076
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_en_to_lv,0,bleu,11.64982
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_en_to_nl,0,bleu,14.90323
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_en_to_no,0,bleu,21.67797
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_en_to_pl,0,bleu,9.70719
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_en_to_pt,0,bleu,14.56015
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_en_to_ro,0,bleu,18.29373
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_en_to_sk,0,bleu,8.82062
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_en_to_sl,0,bleu,10.18752
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_en_to_sr,0,bleu,12.5824
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_en_to_sv,0,bleu,21.25166
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_en_to_tr,0,bleu,7.99512
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_en_to_uk,0,bleu,10.03262
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_es_to_en,0,bleu,26.00939
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_et_to_en,0,bleu,20.73185
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_fi_to_en,0,bleu,17.64049
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_fr_to_en,0,bleu,13.48244
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_hr_to_en,0,bleu,23.22374
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_hu_to_en,0,bleu,17.65675
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_it_to_en,0,bleu,25.29769
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_lt_to_en,0,bleu,18.87641
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_lv_to_en,0,bleu,23.92596
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_nl_to_en,0,bleu,17.49463
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_no_to_en,0,bleu,28.37387
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_pl_to_en,0,bleu,20.4254
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_pt_to_en,0,bleu,29.7392
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_ro_to_en,0,bleu,28.1629
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_sk_to_en,0,bleu,23.12454
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_sl_to_en,0,bleu,15.15335
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_sr_to_en,0,bleu,20.36454
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_sv_to_en,0,bleu,31.04814
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_tr_to_en,0,bleu,18.59608
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,OpenSubtitles,opensubtitles_multi40_uk_to_en,0,bleu,19.13324
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,SIB-200,sib200_als_Latn,0,acc,0.32843
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,SIB-200,sib200_bos_Latn,0,acc,0.45588
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,SIB-200,sib200_bul_Cyrl,0,acc,0.41667
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,SIB-200,sib200_cat_Latn,0,acc,0.40686
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,SIB-200,sib200_ces_Latn,0,acc,0.46078
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,SIB-200,sib200_dan_Latn,0,acc,0.51961
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,SIB-200,sib200_deu_Latn,0,acc,0.48529
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,SIB-200,sib200_ell_Grek,0,acc,0.38725
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,SIB-200,sib200_eng_Latn,0,acc,0.55392
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,SIB-200,sib200_est_Latn,0,acc,0.46078
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,SIB-200,sib200_eus_Latn,0,acc,0.53922
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,SIB-200,sib200_fin_Latn,0,acc,0.51471
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,SIB-200,sib200_fra_Latn,0,acc,0.44118
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,SIB-200,sib200_gle_Latn,0,acc,0.39706
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,SIB-200,sib200_glg_Latn,0,acc,0.35294
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,SIB-200,sib200_hrv_Latn,0,acc,0.43137
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,SIB-200,sib200_hun_Latn,0,acc,0.33333
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,SIB-200,sib200_isl_Latn,0,acc,0.42157
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,SIB-200,sib200_ita_Latn,0,acc,0.42157
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,SIB-200,sib200_kat_Geor,0,acc,0.22549
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,SIB-200,sib200_lit_Latn,0,acc,0.57353
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,SIB-200,sib200_lvs_Latn,0,acc,0.44608
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,SIB-200,sib200_mkd_Cyrl,0,acc,0.40686
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,SIB-200,sib200_mlt_Latn,0,acc,0.28922
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,SIB-200,sib200_nld_Latn,0,acc,0.35294
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,SIB-200,sib200_nob_Latn,0,acc,0.45588
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,SIB-200,sib200_pol_Latn,0,acc,0.43627
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,SIB-200,sib200_por_Latn,0,acc,0.36275
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,SIB-200,sib200_ron_Latn,0,acc,0.47059
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,SIB-200,sib200_slk_Latn,0,acc,0.40196
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,SIB-200,sib200_slv_Latn,0,acc,0.52451
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,SIB-200,sib200_spa_Latn,0,acc,0.33824
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,SIB-200,sib200_srp_Cyrl,0,acc,0.36275
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,SIB-200,sib200_swe_Latn,0,acc,0.48529
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,SIB-200,sib200_tur_Latn,0,acc,0.55882
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,SIB-200,sib200_ukr_Cyrl,0,acc,0.40686
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,Xcsqa,xcsqa_deu_Latn,0,acc_norm,0.4
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,Xcsqa,xcsqa_eng_Latn,0,acc_norm,0.575
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,Xcsqa,xcsqa_fra_Latn,0,acc_norm,0.374
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,Xcsqa,xcsqa_ita_Latn,0,acc_norm,0.37
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,Xcsqa,xcsqa_nld_Latn,0,acc_norm,0.392
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,Xcsqa,xcsqa_pol_Latn,0,acc_norm,0.337
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,Xcsqa,xcsqa_por_Latn,0,acc_norm,0.385
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,Xcsqa,xcsqa_spa_Latn,0,acc_norm,0.371

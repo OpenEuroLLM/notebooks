@@ -11,3 +11,8 @@ dependencies = [
     "pyarrow>=25.0.0",
     "seaborn>=0.13.2",
 ]
+
+[tool.uv.workspace]
+members = [
+    "gradio-leaderboard",
+]
