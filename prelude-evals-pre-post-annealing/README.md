@@ -17,12 +17,12 @@ Everything needed is committed under `data/`, so the plots reproduce with no
 setup beyond [uv](https://docs.astral.sh/uv/):
 
 ```bash
-uv run plot_table.py           # multilingual table + plot_table.png
-uv run plot_table_english.py   # English table + plot_table_english.png
+uv run plot_table.py   # both tables + plot_table.png, plot_table_english.png
 ```
 
-Both print the table to stdout and write a PNG. Flags: `-o <file>` to change
-the output path, `--no-baselines` to show only the three Prelude checkpoints.
+Prints the Multilingual and English tables to stdout and writes one PNG for
+each. Flags: `-o <file>` / `--out-english <file>` to change the output paths,
+`--no-baselines` to show only the three Prelude checkpoints.
 
 ## How the results were produced
 
@@ -100,8 +100,7 @@ See **Quick start**.
 ## Files
 
 ```
-plot_table.py           multilingual table + chart
-plot_table_english.py   English table + chart
+plot_table.py           multilingual + English tables and charts
 export_results.py       step 4
 data/
   prelude-8T*.csv                     the three checkpoints, results.csv schema
@@ -129,7 +128,7 @@ Each is a named constant at the top of the relevant script, with a comment.
   model scores 0.01–0.04, including Apertus 8B v1 at 0.018; only the
   instruction-tuned Apertus v1.5 scored 0.44. Re-run at 5- or 8-shot to make it
   meaningful.
-- **`lambada_openai` excluded** (`plot_table_english.py`). The column in
+- **`lambada_openai` excluded** (`plot_table.py`). The column in
   `compare_prelude_ellamind_suite.csv` is broken for non-prelude models —
   `llama3_1_8b` 0.479 and `llama3_1_70b` 0.503, against ~0.75 in standard
   lm-eval — while the prelude rows (~0.70) look right.
