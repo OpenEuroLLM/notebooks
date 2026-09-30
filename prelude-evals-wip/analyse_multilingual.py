@@ -35,7 +35,11 @@ GRIDLINE_COLOR = "#e1e0d9"
 ACCURACY_METRICS = {"acc", "acc_norm", "exact_match"}
 
 # PolyMath is excluded since it's not suited for base pretrained models
-EXCLUDED_TASKS = ["PolyMath"]
+# Not suited to base pretrained models: PolyMath is competition maths, and
+# global PIQA (prompted) scores exact_match on a required "The best answer
+# is: X" format, so it measures instruction-following rather than
+# commonsense - its mean (0.25) sits below the 0.50 a coin flip would get.
+EXCLUDED_TASKS = ["PolyMath", "global PIQA (prompted)"]
 
 # tokens per training iteration = seq_len * global_batch_size
 TOKENS_PER_ITER = {
