@@ -128,6 +128,8 @@ Each is a named constant at the top of the relevant script, with a comment.
   model scores 0.01–0.04, including Apertus 8B v1 at 0.018; only the
   instruction-tuned Apertus v1.5 scored 0.44. Re-run at 5- or 8-shot to make it
   meaningful.
+- **`PolyMath` excluded** (`plot_table.py`) for the same reason: 0-shot
+  generative maths, every model 0.00–0.12.
 - **`lambada_openai` excluded** (`plot_table.py`). The column in
   `compare_prelude_ellamind_suite.csv` is broken for non-prelude models —
   `llama3_1_8b` 0.479 and `llama3_1_70b` 0.503, against ~0.75 in standard

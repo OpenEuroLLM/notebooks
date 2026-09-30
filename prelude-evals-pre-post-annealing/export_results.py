@@ -55,6 +55,12 @@ MAP = {
     "opensubtitles_multi40": ("OpenSubtitles",    "bleu"),
     "sib200":                ("SIB-200",          "acc"),
     "xcsqa":                 ("Xcsqa",            "acc_norm"),
+    "multiblimp":            ("MultiBlimp",       "acc_norm"),
+    "polymath":              ("PolyMath",         "exact_match"),
+    # trailing underscore: the English `hellaswag` task is not xHellaswag
+    "hellaswag_":            ("xHellaswag",       "acc_norm"),
+    "global_piqa_completions": ("global PIQA",    "acc_norm"),
+    "global_piqa_prompted":  ("global PIQA",      "exact_match"),
 }
 COLS = ["model_path", "size", "data", "lr", "gbsz", "beta2", "seed",
         "schedule", "tokens_B", "iter", "benchmark", "task", "n_shot",

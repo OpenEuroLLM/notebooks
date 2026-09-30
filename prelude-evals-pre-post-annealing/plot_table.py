@@ -23,6 +23,7 @@ Usage: uv run plot_table.py [-o out.png] [--out-english out.png] [--no-baselines
 """
 import argparse
 import os
+import re
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -34,9 +35,84 @@ DATA = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
 RESULTS_CSV = os.path.join(DATA, "results.csv")
 EXTRA_RESULTS_CSVS = [os.path.join(DATA, "results-apertus.csv")]
 
-EXCLUDE_BENCHMARKS = {"Global MGSM"}
+# 0-shot generative maths: base models score ~0, so these measure answer
+# formatting rather than maths (see README.md).
+EXCLUDE_BENCHMARKS = {"Global MGSM", "PolyMath"}
 
 BLEU_BENCHMARK = "OpenSubtitles"
+
+# Prioritized OpenEuroLLM target languages (EU official, co-official, candidate
+# members, Icelandic/Norwegian): ISO 639-3 -> (ISO 639-1, name, other codes).
+TARGET_LANGUAGES = {
+    "bul": ("bg", "bulgarian", []),
+    "ces": ("cs", "czech", []),
+    "dan": ("da", "danish", []),
+    "deu": ("de", "german", []),
+    "ell": ("el", "greek", []),
+    "eng": ("en", "english", []),
+    "est": ("et", "estonian", ["ekk"]),
+    "fin": ("fi", "finnish", []),
+    "fra": ("fr", "french", []),
+    "gle": ("ga", "irish", []),
+    "hrv": ("hr", "croatian", []),
+    "hun": ("hu", "hungarian", []),
+    "ita": ("it", "italian", []),
+    "lav": ("lv", "latvian", ["ltg", "lvs"]),
+    "lit": ("lt", "lithuanian", []),
+    "mlt": ("mt", "maltese", []),
+    "nld": ("nl", "dutch", []),
+    "pol": ("pl", "polish", []),
+    "por": ("pt", "portuguese", []),
+    "ron": ("ro", "romanian", []),
+    "slk": ("sk", "slovak", []),
+    "slv": ("sl", "slovene", ["slovenian"]),
+    "spa": ("es", "spanish", []),
+    "swe": ("sv", "swedish", []),
+    "cat": ("ca", "catalan", []),
+    "eus": ("eu", "basque", []),
+    "glg": ("gl", "galician", []),
+    "bos": ("bs", "bosnian", []),
+    "kat": ("ka", "georgian", []),
+    "mkd": ("mk", "macedonian", ["north macedonian", "north_macedonian"]),
+    "sqi": ("sq", "albanian", ["als"]),
+    "srp": ("sr", "serbian", []),
+    "tur": ("tr", "turkish", []),
+    "ukr": ("uk", "ukrainian", []),
+    "isl": ("is", "icelandic", []),
+    "nor": ("no", "norwegian", ["nno", "nob", "nb", "nn"]),
+}
+_TARGET_CODES = {c for k, (iso1, name, other) in TARGET_LANGUAGES.items()
+                 for c in (k, iso1, name, *other)}
+
+# Task-name prefixes before the language part of a multilingual task.
+_LANG_PREFIX = re.compile(
+    r"^(arc_challenge_mt|belebele|global_mmlu_full|include_base_44|sib200|xcsqa"
+    r"|opensubtitles_multi40|multiblimp|polymath|hellaswag|global_mgsm"
+    r"|global_piqa_completions|global_piqa_prompted|mgsm_native_cot)_"
+    r"|^(flores200|xcopa):")
+
+
+def filter_languages(lang: str) -> bool:
+    """True if `lang` is a target language. Accepts ISO 639-3 or 639-1 codes,
+    a script-suffixed code (kat_Geor, als_latn) or an English name."""
+    lang = lang.lower()
+    return lang in _TARGET_CODES or lang.split("_")[0] in _TARGET_CODES
+
+
+def task_language(task: str) -> str | None:
+    """Language part of a multilingual task name; for translation pairs
+    (opensubtitles bg_to_en) the non-English side."""
+    m = _LANG_PREFIX.match(task)
+    if m is None:
+        return None
+    rest = task[m.end():]
+    for sep in ("_to_", "-"):       # opensubtitles bg_to_en, flores200 X-eng_Latn
+        if sep in rest:
+            src, tgt = rest.split(sep)
+            return tgt if src.split("_")[0] in ("en", "eng") else src
+    if rest in _TARGET_CODES:       # multi-word names, e.g. north_macedonian
+        return rest
+    return rest.split("_")[0]
 
 # Files written from the LUMI sweep, in training-progression order.
 NEW_MODELS = [
@@ -178,7 +254,12 @@ def load_frames(with_baselines=True):
     df = pd.concat(frames, ignore_index=True)
     # GlobalMMLU is the full subject set for every model; collect before oellm-cli
     # ba1ff8c (#109) kept only the _stem subgroup, so re-collect with a later version.
-    return df[~df["benchmark"].isin(EXCLUDE_BENCHMARKS)]
+    df = df[~df["benchmark"].isin(EXCLUDE_BENCHMARKS)]
+    lang = df["task"].map(task_language)
+    unparsed = sorted(df.loc[lang.isna(), "task"].unique())
+    if unparsed:
+        raise SystemExit(f"no language found for tasks: {unparsed[:5]}")
+    return df[lang.map(filter_languages)]
 
 
 def common_tasks_only(df):
