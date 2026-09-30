@@ -4,8 +4,9 @@
 # ///
 """Turn the collected LUMI eval CSV into the results.csv schema.
 
-Reads data/eval_results_all_metrics.csv (produced by `oellm-eval collect
---fetch_all_metrics`) and writes one data/prelude-8T*.csv per checkpoint, using
+Reads data/eval_results_all_metrics.csv and
+data/eval_results_baselines_all_metrics.csv (produced by `oellm-eval collect
+--fetch_all_metrics`) and writes one data/<model>.csv per model, using
 the same columns, metric choices and CRLF line endings as results.csv so the
 files drop straight into the existing analysis pipeline.
 
@@ -16,7 +17,8 @@ import os
 import pandas as pd
 
 DATA = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
-SRC = os.path.join(DATA, "eval_results_all_metrics.csv")
+SRCS = [os.path.join(DATA, "eval_results_all_metrics.csv"),
+        os.path.join(DATA, "eval_results_baselines_all_metrics.csv")]
 PRELUDE = "openeurollm/prelude-checkpoints"
 
 # model_name in the collected CSV -> (output file, data, iter)
@@ -28,7 +30,17 @@ MODELS = {
     "birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b":
         ("prelude-8T-anneal300b-ctxext.csv",
          "birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b", ""),
+    # Baselines missing from results.csv, rerun in the same LUMI setup.
+    "marin-community/marin-8b-base":
+        ("marin-8b.csv", "marin-community/marin-8b-base", ""),
+    "utter-project/EuroLLM-9B":
+        ("eurollm-9b.csv", "utter-project/EuroLLM-9B", ""),
+    # Our run of the Olmo 3 HF release; plot_table.py uses it instead of the
+    # results.csv Olmo 3 rows.
+    "allenai/Olmo-3-1025-7B":
+        ("olmo3-7b-ownrun.csv", "allenai/Olmo-3-1025-7B", ""),
 }
+
 
 # task prefix -> (benchmark label, metric), matching results.csv conventions.
 # SIB-200 uses acc, not the acc_norm that `collect` picks as its primary
@@ -50,11 +62,11 @@ COLS = ["model_path", "size", "data", "lr", "gbsz", "beta2", "seed",
 
 
 def main():
-    src = pd.read_csv(SRC)
+    src = pd.concat([pd.read_csv(p) for p in SRCS], ignore_index=True)
     for model, (fname, data, it) in MODELS.items():
         df = src[src.model_name == model]
         if df.empty:
-            raise SystemExit(f"no rows for {model} in {SRC}")
+            raise SystemExit(f"no rows for {model} in {SRCS}")
         rows = []
         for prefix, (bench, metric) in MAP.items():
             sel = df[df.task.str.startswith(prefix) & (df.metric_name == metric)]

@@ -115,7 +115,7 @@ def task_language_code(benchmark, task):
         return tgt if src == "en" else src
     if benchmark == "XCOPA":
         return task.split(":", 1)[1]
-    if benchmark == "global PIQA":
+    if benchmark.startswith("global PIQA"):
         return task.split("_")[3]
     return None
 
@@ -126,6 +126,25 @@ def resolve_language(benchmark, task):
         return None
     info = LANGUAGE_INFO.get(code.lower())
     return info[0] if info else None
+
+
+
+# results.csv files both global_piqa variants under a single "global PIQA"
+# benchmark, but they are not the same measurement: `completions` is
+# multiple_choice over two solutions (acc_norm, chance = 0.50), while `prompted`
+# is generate_until scored by exact_match on a required "The best answer is: X"
+# format (chance = 0.00, since a model that ignores the format scores nothing).
+# Averaging them mixes two different floors, so they are split into separate
+# benchmarks at load time.
+def split_global_piqa(df):
+    is_piqa = df["benchmark"] == "global PIQA"
+    if not is_piqa.any():
+        return df
+    df = df.copy()
+    variant = df.loc[is_piqa, "task"].str.contains("completions")
+    df.loc[is_piqa, "benchmark"] = variant.map(
+        {True: "global PIQA (completions)", False: "global PIQA (prompted)"})
+    return df
 
 
 def compute_tokens_b(row):
@@ -237,6 +256,7 @@ def main():
         if os.path.exists(path):
             dfs.append(pd.read_csv(path))
     df = pd.concat(dfs, ignore_index=True)
+    df = split_global_piqa(df)
     df = df[~df["benchmark"].isin(EXCLUDED_TASKS)]
     df["tokens_B"] = df.apply(compute_tokens_b, axis=1)
     df["language"] = df.apply(lambda row: resolve_language(row["benchmark"], row["task"]), axis=1)

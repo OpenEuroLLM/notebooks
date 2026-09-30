@@ -132,15 +132,16 @@ Each is a named constant at the top of the relevant script, with a comment.
   `compare_prelude_ellamind_suite.csv` is broken for non-prelude models —
   `llama3_1_8b` 0.479 and `llama3_1_70b` 0.503, against ~0.75 in standard
   lm-eval — while the prelude rows (~0.70) look right.
-- **`GlobalMMLU*`** is matched across sources by *language*. The Prelude rows
-  are the STEM subset (`global_mmlu_full_<lang>_stem`), the baselines the full
-  subject set, so the two sides answer different questions. Treat that column
-  as indicative.
+- **GlobalMMLU is the full subject set** for every model. `oellm-eval collect`
+  before `ba1ff8c` (#109) kept only the first group in each result JSON, which
+  for GlobalMMLU is the `_stem` subgroup — collect with a later version.
 - **SIB-200 uses `acc`**, not the `acc_norm` that `oellm-eval collect` picks:
   `acc_norm` is exactly 0.25 on every language for every model.
-- **Baselines marked `*` in the English table** differ from the multilingual
-  one — Datamix is `9b_60_40@step900000` (the English suite has no `9b_80_20`)
-  and Olmo 3 is `@step1473419`. Apertus and Prelude 4T match across both.
+- **Olmo 3 7B is our own run** of the HF release (`allenai/Olmo-3-1025-7B`) in
+  both tables, not the `results.csv` / suite checkpoints.
+- **Datamix is marked `*` in the `--suite-english` table**: it is
+  `9b_60_40@step900000` there (the suite has no `9b_80_20`). Apertus and
+  Prelude 4T match across both tables.
 - Every benchmark is averaged over **only the languages/tasks all plotted
   models have**, so groups are like-for-like. Counts appear in the chart
   subtitle.

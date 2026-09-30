@@ -53,22 +53,22 @@ birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k
 birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,Global MGSM,global_mgsm_fr,0,exact_match,0.02
 birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,Global MGSM,global_mgsm_gl,0,exact_match,0.036
 birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,Global MGSM,global_mgsm_hu,0,exact_match,0.068
-birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_cs_stem,5,acc,0.4732
-birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_de_stem,5,acc,0.4602
-birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_el_stem,5,acc,0.4621
-birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_en_stem,5,acc,0.49604
-birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_es_stem,5,acc,0.47923
-birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_fr_stem,5,acc,0.47986
-birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_it_stem,5,acc,0.4824
-birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_lt_stem,5,acc,0.46908
-birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_nl_stem,5,acc,0.48398
-birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_pl_stem,5,acc,0.4751
-birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_pt_stem,5,acc,0.46939
-birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_ro_stem,5,acc,0.47827
-birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_sr_stem,5,acc,0.46844
-birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_sv_stem,5,acc,0.47891
-birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_tr_stem,5,acc,0.45512
-birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_uk_stem,5,acc,0.46464
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_cs,5,acc,0.54807
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_de,5,acc,0.54422
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_el,5,acc,0.54216
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_en,5,acc,0.59244
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_es,5,acc,0.55647
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_fr,5,acc,0.55662
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_it,5,acc,0.55234
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_lt,5,acc,0.53126
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_nl,5,acc,0.55939
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_pl,5,acc,0.54572
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_pt,5,acc,0.55455
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_ro,5,acc,0.56089
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_sr,5,acc,0.54252
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_sv,5,acc,0.55334
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_tr,5,acc,0.52471
+birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,GlobalMMLU,global_mmlu_full_uk,5,acc,0.53561
 birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,INCLUDE,include_base_44_albanian,0,acc,0.60436
 birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,INCLUDE,include_base_44_basque,0,acc,0.344
 birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b,,,,,,,,INCLUDE,include_base_44_bulgarian,0,acc,0.47091

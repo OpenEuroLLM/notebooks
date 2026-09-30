@@ -36,13 +36,6 @@ EXTRA_RESULTS_CSVS = [os.path.join(DATA, "results-apertus.csv")]
 
 EXCLUDE_BENCHMARKS = {"Global MGSM"}
 
-# The prelude-8T sweep ran GlobalMMLU's STEM subset
-# (global_mmlu_full_<lang>_stem); results.csv holds the full subject set
-# (global_mmlu_full_<lang>). Matching them on language lets the benchmark be
-# plotted, but the two sides answer different question sets - see the asterisk
-# in GLOBAL_MMLU_LABEL.
-GLOBAL_MMLU_LABEL = "GlobalMMLU*"
-
 BLEU_BENCHMARK = "OpenSubtitles"
 
 # Files written from the LUMI sweep, in training-progression order.
@@ -57,8 +50,17 @@ NEW_MODELS = [
 BASELINES = [
     ("Prelude 4T", "openeurollm/prelude-checkpoints", "iter_0480000"),
     ("Datamix 9b (4T)", "openeurollm/datamix-9b-80-20", "iter_0950000"),
-    ("Olmo 3 7B", "allenai/Olmo-3-1025-7B", "stage1-step960000"),
     ("Apertus 8B (v1, 15T)", "swiss-ai/Apertus-8B-2509", "step2627139-tokens15T"),
+]
+
+# Baselines absent from results.csv, rerun in the same LUMI setup and exported
+# by export_results.py. The rerun hit timeouts, so they miss some languages -
+# common_tasks_only then narrows every benchmark to what they have.
+RERUN_BASELINES = [
+    ("Marin 8B", "marin-8b.csv"),
+    ("EuroLLM 9B", "eurollm-9b.csv"),
+    # Our run of the HF release, used instead of results.csv's Olmo 3 rows.
+    ("Olmo 3 7B", "olmo3-7b-ownrun.csv"),
 ]
 
 
@@ -71,6 +73,8 @@ ROW_ORDER = [
     "Prelude 8T + 300BT ann. + context ext.",
     "Olmo 3 7B",
     "Apertus 8B (v1, 15T)",
+    "Marin 8B",
+    "EuroLLM 9B",
 ]
 
 
@@ -78,6 +82,7 @@ ROW_ORDER = [
 # three Prelude checkpoints. See README.md for how both are produced.
 SUITE_CSV = os.path.join(DATA, "compare_prelude_ellamind_suite.csv")
 EVAL_CSV = os.path.join(DATA, "eval_results.csv")
+EVAL_BASELINES_CSV = os.path.join(DATA, "eval_results_baselines.csv")
 
 # LUMI sweep model_name -> label, in training-progression order.
 NEW_MODELS_EN = [
@@ -94,8 +99,23 @@ NEW_MODELS_EN = [
 BASELINES_EN = [
     ("prelude_iter_0480000", "Prelude 4T"),
     ("oellm_datamix_9b_60_40@step900000", "Datamix 9b 60-40*"),
-    ("olmo_3_1025_7b@step1473419", "Olmo 3 7B*"),
     ("apertus_8b@step2627139", "Apertus 8B (v1, 15T)"),
+]
+
+# Rerun baselines (EVAL_BASELINES_CSV model_name -> label), same setup as the
+# Prelude rows.
+M = "/scratch/project_465002530/davisali/models"
+
+RERUN_BASELINES_EN = [
+    ("marin-community/marin-8b-base", "Marin 8B"),
+    ("utter-project/EuroLLM-9B", "EuroLLM 9B"),
+    ("allenai/Olmo-3-1025-7B", "Olmo 3 7B"),
+    # dclm-core-22 rerun of the four baselines that previously existed only in
+    # compare_prelude_ellamind_suite.csv, so the English table no longer falls
+    # back to that file's 6-benchmark overlap.
+    (f"{M}/prelude-iter_0480000", "Prelude 4T"),
+    (f"{M}/datamix-9b-80-20-iter_0950000", "Datamix 9b (4T)"),
+    (f"{M}/apertus-8b-step2627139-tokens15T", "Apertus 8B (v1, 15T)"),
 ]
 
 # hellaswag is run at both 0- and 10-shot in the sweep; the suite does not
@@ -110,13 +130,16 @@ EXCLUDE_BENCHMARKS_EN = {"lambada_openai"}
 
 
 ROW_ORDER_EN = [
+    "Datamix 9b (4T)",
     "Datamix 9b 60-40*",
     "Prelude 4T",
     "Prelude 8T",
     "Prelude 8T + 300BT annealing",
     "Prelude 8T + 300BT ann. + context ext.",
-    "Olmo 3 7B*",
+    "Olmo 3 7B",
     "Apertus 8B (v1, 15T)",
+    "Marin 8B",
+    "EuroLLM 9B",
 ]
 
 
@@ -147,32 +170,89 @@ def load_frames(with_baselines=True):
             d = d.copy()
             d["label"] = label
             frames.append(d)
+        for label, fname in RERUN_BASELINES:
+            d = pd.read_csv(os.path.join(DATA, fname))
+            d["label"] = label
+            frames.append(d)
 
     df = pd.concat(frames, ignore_index=True)
-    df = df[~df["benchmark"].isin(EXCLUDE_BENCHMARKS)]
-
-    # Match GlobalMMLU across sources by language, not by raw task name.
-    df["task_key"] = df["task"]
-    mmlu = df["benchmark"] == "GlobalMMLU"
-    df.loc[mmlu, "task_key"] = (
-        df.loc[mmlu, "task"].str.replace(r"_stem$", "", regex=True))
-    df.loc[mmlu, "benchmark"] = GLOBAL_MMLU_LABEL
-    return df
+    # GlobalMMLU is the full subject set for every model; collect before oellm-cli
+    # ba1ff8c (#109) kept only the _stem subgroup, so re-collect with a later version.
+    return df[~df["benchmark"].isin(EXCLUDE_BENCHMARKS)]
 
 
 def common_tasks_only(df):
     """Keep only tasks every plotted model has a score for, so each bar
     averages over the identical set of languages."""
     n = df["label"].nunique()
-    keep = df.groupby("task_key")["label"].nunique() == n
-    return df[df["task_key"].map(keep)]
+    keep = df.groupby("task")["label"].nunique() == n
+    return df[df["task"].map(keep)]
+
+
+def to_markdown(df):
+    """Markdown table with two decimals; the best (highest) value of each
+    row is bolded. Every metric here is higher-is-better."""
+    best = df.max(axis=1)
+    header = [df.index.name or ""] + [str(c) for c in df.columns]
+    lines = ["| " + " | ".join(header) + " |",
+             "|" + "---|" + "---:|" * len(df.columns)]
+    for label, row in df.iterrows():
+        cells = []
+        for col, v in row.items():
+            if pd.isna(v):
+                cells.append("–")
+                continue
+            cell = f"{v:.2f}"
+            if round(v, 2) == round(best[label], 2):
+                cell = f"**{cell}**"
+            cells.append(cell)
+        lines.append("| " + " | ".join([str(label)] + cells) + " |")
+    return "\n".join(lines)
+
+
+# Full dclm-core-22. The English table used to be capped at the 6 benchmarks
+# that compare_prelude_ellamind_suite.csv also carries; now that the baselines
+# have been rerun on our own suite, the whole group is available for every
+# same-suite model. agieval_lsat_ar, squadv2 and
+# bigbench_language_identification_multiple_choice are absent for everyone
+# (the first two are lm-eval 0.4.13 bugs), leaving 18.
+DCLM_TASKS = [
+    "agieval_lsat_ar", "arc_easy", "arc_challenge", "boolq", "commonsense_qa",
+    "copa", "hellaswag", "openbookqa", "piqa",
+    "bigbench_language_identification_multiple_choice", "winogrande", "wsc273",
+    "lambada_openai", "bigbench_qa_wikidata_generate_until",
+    "bigbench_dyck_languages_generate_until", "bigbench_operators_generate_until",
+    "bigbench_repeat_copy_logic_generate_until",
+    "bigbench_cs_algorithms_generate_until", "coqa", "squadv2", "jeopardy",
+]
+
+
+def load_english_dclm():
+    """Full dclm-core-22, same-suite models only (no compare-suite baselines)."""
+    ev = pd.concat([pd.read_csv(EVAL_CSV), pd.read_csv(EVAL_BASELINES_CSV)],
+                   ignore_index=True)
+    ev = ev[ev.task.isin(DCLM_TASKS)]
+    n = ev.groupby("task")["n_shot"].nunique()
+    ev["bench"] = ev.apply(
+        lambda r: f"{r['task']}_{r['n_shot']}s" if n[r["task"]] > 1 else r["task"],
+        axis=1)
+
+    rows = {}
+    for model, label in NEW_MODELS_EN + RERUN_BASELINES_EN:
+        rows[label] = ev[ev.model_name == model].set_index("bench")["performance"]
+    df = pd.DataFrame(rows).T
+    order = [l for _, l in NEW_MODELS_EN] + [l for _, l in RERUN_BASELINES_EN]
+    df = df.reindex([l for l in ROW_ORDER_EN if l in order] +
+                    [l for l in order if l not in ROW_ORDER_EN])
+    return df.dropna(axis=1, how="any")
 
 
 def load_english():
     suite = pd.read_csv(SUITE_CSV).set_index("method")
     suite = suite.drop(columns=["average"], errors="ignore")
 
-    ev = pd.read_csv(EVAL_CSV)
+    ev = pd.concat([pd.read_csv(EVAL_CSV), pd.read_csv(EVAL_BASELINES_CSV)],
+                   ignore_index=True)
     suite = suite.drop(columns=list(EXCLUDE_BENCHMARKS_EN), errors="ignore")
     ev = ev[ev.task.isin(suite.columns)]
     ev = ev[~((ev.task == "hellaswag") & (ev.n_shot != HELLASWAG_NSHOT))]
@@ -186,6 +266,9 @@ def load_english():
         if method not in suite.index:
             raise SystemExit(f"{method} not in {SUITE_CSV}")
         rows[label] = suite.loc[method]
+
+    for model, label in RERUN_BASELINES_EN:
+        rows[label] = ev[ev.model_name == model].set_index("task")["performance"]
 
     df = pd.DataFrame(rows).T
     df = df.reindex([l for l in ROW_ORDER_EN if l in df.index])
@@ -243,11 +326,10 @@ def plot_multilingual(out, with_baselines=True):
         ax2.grid(axis="y", alpha=0.3)
         ax2.set_axisbelow(True)
 
-    n_tasks = df.groupby("benchmark")["task_key"].nunique()
+    n_tasks = df.groupby("benchmark")["task"].nunique()
     detail = ", ".join(f"{b} {n}" for b, n in n_tasks.items())
     fig.suptitle("Prelude-8T variants vs baselines\n"
-                 f"mean over languages common to all models ({detail})\n"
-                 "* GlobalMMLU: prelude-8T rows are the STEM subset, baselines the full subject set",
+                 f"mean over languages common to all models ({detail})",
                  fontsize=9, y=0.995)
     fig.tight_layout()
     fig.savefig(out, dpi=150)
@@ -256,13 +338,17 @@ def plot_multilingual(out, with_baselines=True):
     if bleu is not None:
         table = table.join(bleu.round(2))
     table["AVG"] = acc["AVG"]          # AVG last; excludes BLEU
+    table = table.T                    # benchmarks as rows, models as columns
+    plot_ranks(table, "plot_table_ranks.png", "multilingual")
     print("\nMultilingual")
     print(table.round(2).to_string())
+    print()
+    print(to_markdown(table))
 
 
 
-def plot_english(out, with_baselines=True):
-    df = load_english()
+def plot_english(out, with_baselines=True, full_dclm=True):
+    df = load_english_dclm() if full_dclm else load_english()
     if not with_baselines:
         df = df.loc[[l for _, l in NEW_MODELS_EN]]
     df["AVG"] = df.mean(axis=1)
@@ -283,14 +369,78 @@ def plot_english(out, with_baselines=True):
     ax.grid(axis="y", alpha=0.3)
     ax.set_axisbelow(True)
     ax.legend(fontsize=8, ncol=4, loc="upper center", framealpha=0.95)
-    fig.suptitle("Prelude-8T variants vs baselines - English benchmarks\n"
-                 f"hellaswag at {HELLASWAG_NSHOT}-shot; baseline shot settings "
-                 "undocumented in the suite CSV", fontsize=9)
+    sub = ("full dclm-core-22, all models run on the same suite"
+           if full_dclm else
+           f"hellaswag at {HELLASWAG_NSHOT}-shot; baseline shot settings "
+           "undocumented in the suite CSV")
+    fig.suptitle(f"Prelude-8T variants vs baselines - English benchmarks\n{sub}",
+                 fontsize=9)
     fig.tight_layout()
     fig.savefig(out, dpi=150)
     print(f"wrote {out}")
+    plot_ranks(df.T, "plot_table_english_ranks.png", "English")
     print("\nEnglish")
-    print(df.round(2).to_string())
+    print(df.T.round(2).to_string())
+    print()
+    print(to_markdown(df.T))
+
+
+
+def plot_ranks(scores, out, what):
+    """Rank of each model within every benchmark (1 = best), plus AVG.
+
+    `scores` is benchmarks x models, AVG included. Rank is ordinal magnitude, so
+    the cells use one sequential hue rather than categorical colours, and every
+    cell carries its rank as a number - colour is the secondary encoding, never
+    the only one.
+    """
+    # every metric here is higher-is-better; ties share the better rank
+    ranks = scores.rank(axis=1, ascending=False, method="min").astype(int)
+
+    # AVG last, separated from the per-benchmark rows
+    order = [b for b in ranks.index if b != "AVG"] + ["AVG"]
+    ranks, scores = ranks.loc[order], scores.loc[order]
+
+    n_row, n_col = ranks.shape
+    fig, ax = plt.subplots(figsize=(0.95 * n_col + 5.0, 0.42 * n_row + 2.4))
+    ax.imshow(ranks.to_numpy(), cmap="Blues_r", vmin=1, vmax=n_col,
+              aspect="auto")
+
+    for i in range(n_row):
+        for j in range(n_col):
+            r = ranks.iat[i, j]
+            # ink stays legible against the ramp; no series colour in text
+            ax.text(j, i, str(r), ha="center", va="center", fontsize=9,
+                    color="white" if r <= n_col / 2.5 else "#1a1a1a",
+                    fontweight="bold" if r == 1 else "normal")
+
+    ax.set_xticks(range(n_col))
+    ax.set_xticklabels(ranks.columns, rotation=30, ha="right", fontsize=9)
+    ax.set_yticks(range(n_row))
+    ax.set_yticklabels(ranks.index, fontsize=9)
+    ax.tick_params(length=0)
+    for sp in ax.spines.values():
+        sp.set_visible(False)
+
+    # 2px surface gap between cells
+    ax.set_xticks([x - 0.5 for x in range(1, n_col)], minor=True)
+    ax.set_yticks([y - 0.5 for y in range(1, n_row)], minor=True)
+    ax.grid(which="minor", color="white", linewidth=2)
+    # divider above AVG
+    ax.axhline(n_row - 1.5, color="#1a1a1a", linewidth=1.5)
+
+    ax.set_title(f"Rank among the {n_col} methods per {what} benchmark "
+                 f"(1 = best of {n_col}; darker = better)", fontsize=10, pad=12)
+    fig.tight_layout()
+    fig.savefig(out, dpi=150)
+    print(f"wrote {out}")
+    print(f"\n{what} ranks (1 = best)")
+    print(ranks.to_string())
+    print()
+    n_bench = len(ranks) - 1
+    print(f"mean rank across the {n_bench} benchmarks:")
+    print(ranks.drop(index="AVG").mean().round(2).sort_values().to_string())
+    return ranks
 
 
 
@@ -300,10 +450,15 @@ def main():
                     help="multilingual chart")
     ap.add_argument("--out-english", default="plot_table_english.png")
     ap.add_argument("--no-baselines", action="store_true")
+    ap.add_argument("--suite-english", action="store_true",
+                    help="English table from compare_prelude_ellamind_suite.csv "
+                         "(adds Apertus/Datamix/Prelude 4T, but only the 6 "
+                         "benchmarks that file shares with dclm-core-22)")
     args = ap.parse_args()
 
     plot_multilingual(args.out, with_baselines=not args.no_baselines)
-    plot_english(args.out_english, with_baselines=not args.no_baselines)
+    plot_english(args.out_english, with_baselines=not args.no_baselines,
+                 full_dclm=not args.suite_english)
 
 if __name__ == "__main__":
     main()
