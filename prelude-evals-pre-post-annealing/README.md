@@ -1,13 +1,20 @@
 # Prelude 8T — pre/post annealing evaluation
 
-Compares three Prelude checkpoints against external baselines on English and
+Compares four Prelude checkpoints against external baselines on English and
 multilingual benchmarks:
 
 | label | checkpoint |
 |---|---|
 | Prelude 8T | `prelude-iter_0953312` (7997 B tokens) |
 | Prelude 8T + 300BT annealing | `prelude-anneal300b_iter_0989075` (8297 B tokens) |
+| Prelude 8T + 300BT ann. + 256k rope20m cont. | `prelude-anneal300b-256k-rope20m-cont/iter_0500` (luomajou's run, LUMI) |
 | Prelude 8T + 300BT ann. + context ext. | `birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b` |
+
+The 256k-rope20m row was evaluated outside our `collect` run and arrives as
+`data/export_256k-rope20m-cont_iter0500_allmetrics.csv`, copied from
+`/scratch/project_465002530/users/luomajou/` on LUMI. It covers the same task
+suite, so it does not narrow `common_tasks_only`; `export_results.py` also
+derives `data/eval_results_256k-rope20m-cont.csv` for the English table.
 
 Baselines: Datamix 9b, Prelude 4T, Olmo 3 7B, Apertus 8B (v1 base, 15T).
 

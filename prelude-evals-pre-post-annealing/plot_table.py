@@ -118,6 +118,7 @@ def task_language(task: str) -> str | None:
 NEW_MODELS = [
     ("Prelude 8T", "prelude-8T.csv"),
     ("Prelude 8T + 300BT annealing", "prelude-8T-anneal300b.csv"),
+    ("Prelude 8T + 300BT ann. + 256k rope20m cont.", "prelude-8T-anneal300b-256k-rope20m.csv"),
     ("Prelude 8T + 300BT ann. + context ext.", "prelude-8T-anneal300b-ctxext.csv"),
 ]
 
@@ -146,6 +147,7 @@ ROW_ORDER = [
     "Prelude 4T",
     "Prelude 8T",
     "Prelude 8T + 300BT annealing",
+    "Prelude 8T + 300BT ann. + 256k rope20m cont.",
     "Prelude 8T + 300BT ann. + context ext.",
     "Olmo 3 7B",
     "Apertus 8B (v1, 15T)",
@@ -159,6 +161,8 @@ ROW_ORDER = [
 SUITE_CSV = os.path.join(DATA, "compare_prelude_ellamind_suite.csv")
 EVAL_CSV = os.path.join(DATA, "eval_results.csv")
 EVAL_BASELINES_CSV = os.path.join(DATA, "eval_results_baselines.csv")
+# Models exported outside the `collect` run, written by export_results.py.
+EVAL_EXTRA_CSVS = [os.path.join(DATA, "eval_results_256k-rope20m-cont.csv")]
 
 # LUMI sweep model_name -> label, in training-progression order.
 NEW_MODELS_EN = [
@@ -166,6 +170,8 @@ NEW_MODELS_EN = [
      "Prelude 8T"),
     ("/scratch/project_465002530/davisali/models/prelude-anneal300b_iter_0989075",
      "Prelude 8T + 300BT annealing"),
+    ("/scratch/project_465002530/users/luomajou/oellm-long-ctx/output-prelude-anneal300b-256k-rope20m-cont/hf-checkpoints/prelude-anneal300b-256k-rope20m-cont/iter_0500",
+     "Prelude 8T + 300BT ann. + 256k rope20m cont."),
     ("birgermoell/oellm-9b-256k-theta64m-prelude-anneal300b",
      "Prelude 8T + 300BT ann. + context ext."),
 ]
@@ -211,6 +217,7 @@ ROW_ORDER_EN = [
     "Prelude 4T",
     "Prelude 8T",
     "Prelude 8T + 300BT annealing",
+    "Prelude 8T + 300BT ann. + 256k rope20m cont.",
     "Prelude 8T + 300BT ann. + context ext.",
     "Olmo 3 7B",
     "Apertus 8B (v1, 15T)",
@@ -310,7 +317,8 @@ DCLM_TASKS = [
 
 def load_english_dclm():
     """Full dclm-core-22, same-suite models only (no compare-suite baselines)."""
-    ev = pd.concat([pd.read_csv(EVAL_CSV), pd.read_csv(EVAL_BASELINES_CSV)],
+    ev = pd.concat([pd.read_csv(EVAL_CSV), pd.read_csv(EVAL_BASELINES_CSV)]
+                   + [pd.read_csv(p) for p in EVAL_EXTRA_CSVS],
                    ignore_index=True)
     ev = ev[ev.task.isin(DCLM_TASKS)]
     n = ev.groupby("task")["n_shot"].nunique()
@@ -332,7 +340,8 @@ def load_english():
     suite = pd.read_csv(SUITE_CSV).set_index("method")
     suite = suite.drop(columns=["average"], errors="ignore")
 
-    ev = pd.concat([pd.read_csv(EVAL_CSV), pd.read_csv(EVAL_BASELINES_CSV)],
+    ev = pd.concat([pd.read_csv(EVAL_CSV), pd.read_csv(EVAL_BASELINES_CSV)]
+                   + [pd.read_csv(p) for p in EVAL_EXTRA_CSVS],
                    ignore_index=True)
     suite = suite.drop(columns=list(EXCLUDE_BENCHMARKS_EN), errors="ignore")
     ev = ev[ev.task.isin(suite.columns)]
