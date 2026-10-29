@@ -104,13 +104,41 @@ metric choice and CRLF line endings of `results.csv`.
 
 See **Quick start**.
 
+## Annealing trajectory (intermediate checkpoints)
+
+`data/anneal300b-trajectory/` holds 15 intermediate checkpoints of the 300BT
+anneal (`openeurollm/prelude` branches `anneal300b_iter_0955200` ...
+`0988800`, every 2400 iters), evaluated by tudormateiu with
+`multilingual-oellm-eu` only - **no English dclm-core-22**. Every checkpoint
+has the identical 579 rows (same tasks, shots and metrics, no gaps), copied
+unchanged from
+`/scratch/project_465002530/users/tudormateiu/prelude_evaluations/evals/results/`
+(`scp 'lumi:<that dir>/*.csv' data/anneal300b-trajectory/`).
+
+```bash
+uv run plot_anneal_trajectory.py   # plot_anneal_trajectory.png + tables
+```
+
+One panel per benchmark, with our Prelude 8T (iter 953312) and final anneal
+(iter 989075) runs overlaid. Same metric mapping and language filter as
+`plot_table.py`; each benchmark is averaged over the (task, n_shot) pairs all
+17 points share (279). Iter 988800 (Tudor's run) and 989075 (ours) agree to
+within 0.001 on AVG, so the two eval setups are consistent. SIB-200 is very
+noisy between neighbouring checkpoints (0.32-0.49), so read its panel, and the
+AVG dips it causes, with care.
+
+Not used: Tudor's runs also include `flores200` chrF++ (70 tasks), `xcopa` and
+`mgsm_native`, which the 8T / anneal runs here lack, so they have no anchor.
+
 ## Files
 
 ```
 plot_table.py           multilingual + English tables and charts
+plot_anneal_trajectory.py   multilingual scores along the anneal
 export_results.py       step 4
 data/
   prelude-8T*.csv                     the three checkpoints, results.csv schema
+  anneal300b-trajectory/              15 intermediate anneal checkpoints (Tudor)
   eval_results.csv                    collected scores, primary metric
   eval_results_all_metrics.csv        collected scores, all metrics
   results.csv                         multilingual baselines
