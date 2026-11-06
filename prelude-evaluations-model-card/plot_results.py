@@ -1,0 +1,528 @@
+# /// script
+# requires-python = ">=3.12"
+# dependencies = [
+#   "huggingface_hub",
+#   "matplotlib",
+#   "pandas",
+#   "pyarrow",
+# ]
+# ///
+"""Final-checkpoint results of Prelude vs baselines on English, Multilingual,
+German and Norwegian.
+
+For each category: a markdown table (models x benchmark groups, plus AVG, best
+value of each column in bold) and a grouped bar plot
+figures/plot_results_<category>.png. Both are also written to README.md, whose
+text above "# Results" is kept and everything from it on regenerated. Each
+model is shown at a single checkpoint: its released model when there is one,
+else its latest checkpoint.
+
+Sources (HF datasets):
+  English / German  openeurollm/prelude-base-eval-scores scores.parquet
+                    (Prelude) + ellamind/eval-scores-ref (baselines). Tasks
+                    are averaged within their task group of the suite's
+                    subtask_tree, so e.g. the bigbench subtasks count once.
+  Multilingual      multilingual_scores.parquet, OpenEuroLLM target languages
+                    only, EXCLUDE_BENCHMARKS dropped.
+  Norwegian         noreval_scores.parquet (only Prelude + 2T anneal so far).
+                    Prompt variants (_p0.._p4) are averaged per task.
+Tasks are kept only when every model of the category has them. Translation
+metrics (BLEU / chrF, 0-100) go to a separate panel and are left out of AVG.
+
+Usage: uv run plot_results.py
+"""
+import datetime
+import json
+import os
+import re
+
+import matplotlib.pyplot as plt
+import pandas as pd
+from huggingface_hub import hf_hub_download
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+FIGURES = os.path.join(HERE, "figures")
+README = os.path.join(HERE, "README.md")
+
+REPO_ID = "openeurollm/prelude-base-eval-scores"
+ELLAMIND_REPO_ID = "ellamind/eval-scores-ref"
+# Suite-level aggregates: a leaf directly under one of these is its own group.
+SUITES = {f"{l}_base_{s}" for l in ("eng", "deu") for s in ("main", "full", "easy")}
+
+# 0-shot generative maths: base models score ~0, so these measure answer
+# formatting rather than maths (see plot_table.py
+# in prelude-evals-pre-post-annealing).
+EXCLUDE_BENCHMARKS = {"Global MGSM", "PolyMath"}
+
+# Prioritized OpenEuroLLM target languages (EU official, co-official, candidate
+# members, Icelandic/Norwegian): ISO 639-3 -> (ISO 639-1, name, other codes).
+TARGET_LANGUAGES = {
+    "bul": ("bg", "bulgarian", []),
+    "ces": ("cs", "czech", []),
+    "dan": ("da", "danish", []),
+    "deu": ("de", "german", []),
+    "ell": ("el", "greek", []),
+    "eng": ("en", "english", []),
+    "est": ("et", "estonian", ["ekk"]),
+    "fin": ("fi", "finnish", []),
+    "fra": ("fr", "french", []),
+    "gle": ("ga", "irish", []),
+    "hrv": ("hr", "croatian", []),
+    "hun": ("hu", "hungarian", []),
+    "ita": ("it", "italian", []),
+    "lav": ("lv", "latvian", ["ltg", "lvs"]),
+    "lit": ("lt", "lithuanian", []),
+    "mlt": ("mt", "maltese", []),
+    "nld": ("nl", "dutch", []),
+    "pol": ("pl", "polish", []),
+    "por": ("pt", "portuguese", []),
+    "ron": ("ro", "romanian", []),
+    "slk": ("sk", "slovak", []),
+    "slv": ("sl", "slovene", ["slovenian"]),
+    "spa": ("es", "spanish", []),
+    "swe": ("sv", "swedish", []),
+    "cat": ("ca", "catalan", []),
+    "eus": ("eu", "basque", []),
+    "glg": ("gl", "galician", []),
+    "bos": ("bs", "bosnian", []),
+    "kat": ("ka", "georgian", []),
+    "mkd": ("mk", "macedonian", ["north macedonian", "north_macedonian"]),
+    "sqi": ("sq", "albanian", ["als"]),
+    "srp": ("sr", "serbian", []),
+    "tur": ("tr", "turkish", []),
+    "ukr": ("uk", "ukrainian", []),
+    "isl": ("is", "icelandic", []),
+    "nor": ("no", "norwegian", ["nno", "nob", "nb", "nn"]),
+}
+_TARGET_CODES = {c for k, (iso1, name, other) in TARGET_LANGUAGES.items()
+                 for c in (k, iso1, name, *other)}
+
+# Task-name prefixes before the language part of a multilingual task.
+_LANG_PREFIX = re.compile(
+    r"^(arc_challenge_mt|belebele|global_mmlu_full|include_base_44|sib200|xcsqa"
+    r"|opensubtitles_multi40|multiblimp|polymath|hellaswag|global_mgsm"
+    r"|global_piqa_completions|global_piqa_prompted|mgsm_native_cot)_"
+    r"|^(flores200|xcopa):")
+
+
+def filter_languages(lang: str) -> bool:
+    """True if `lang` is a target language. Accepts ISO 639-3 or 639-1 codes,
+    a script-suffixed code (kat_Geor, als_latn) or an English name."""
+    lang = lang.lower()
+    return lang in _TARGET_CODES or lang.split("_")[0] in _TARGET_CODES
+
+
+def task_language(task: str) -> str | None:
+    """Language part of a multilingual task name; for translation pairs
+    (opensubtitles bg_to_en) the non-English side."""
+    m = _LANG_PREFIX.match(task)
+    if m is None:
+        return None
+    rest = task[m.end():]
+    for sep in ("_to_", "-"):       # opensubtitles bg_to_en, flores200 X-eng_Latn
+        if sep in rest:
+            src, tgt = rest.split(sep)
+            return tgt if src.split("_")[0] in ("en", "eng") else src
+    if rest in _TARGET_CODES:       # multi-word names, e.g. north_macedonian
+        return rest
+    return rest.split("_")[0]
+
+
+# --- multilingual: tokens from revision names --------------------------------
+# tokens per optimiser step = global batch size * sequence length
+TOKENS_PER_STEP = {
+    "openeurollm/prelude-checkpoints": 4096 * 2048,
+    "openeurollm/datamix-9b-80-20": 2048 * 2048,
+    "allenai/Olmo-3-1025-7B": 4_194_304,
+}
+STEP_RE = re.compile(r"(?:iter_|stage1-step)(\d+)")
+APERTUS_TOKENS_RE = re.compile(r"tokens(\d+(?:\.\d+)?)([BT])")
+
+
+def tokens_trained(model: str, revision: str | None) -> float | None:
+    """Tokens seen at a checkpoint, from its revision name; None for released
+    models without checkpoints."""
+    if revision is None:
+        return None
+    if model == "swiss-ai/Apertus-8B-2509":
+        m = APERTUS_TOKENS_RE.search(revision)
+        return float(m.group(1)) * (1e12 if m.group(2) == "T" else 1e9)
+    m = STEP_RE.search(revision)
+    return int(m.group(1)) * TOKENS_PER_STEP[model]
+
+
+def leaf_groups(df: pd.DataFrame) -> dict[str, str]:
+    """Leaf task -> the task group whose subtask_tree lists it directly
+    (smallest such group when several do). Suite aggregates are skipped."""
+    parent = {}
+    groups = df[(df["task_type"] == "task_group") & df["subtask_tree"].notna()
+                & ~df["task"].isin(SUITES)].drop_duplicates("task")
+    for group, tree in zip(groups["task"], groups["subtask_tree"]):
+        children = json.loads(tree).get(group, [])
+        for child in children:
+            if child not in parent or len(children) < parent[child][1]:
+                parent[child] = (group, len(children))
+    return {leaf: g for leaf, (g, _) in parent.items()}
+
+
+# Per task, the first of these the task reports is used.
+METRIC_PREFERENCE = ["acc_norm", "acc", "exact_match", "em", "errant"]
+TRANSLATION_METRICS = ["chrf", "chrf++", "bleu"]   # side panel, not in AVG
+
+# series id -> name. Rows / bars: open-weights, then fully open models (each by
+# AVG, weakest first), then Prelude.
+ENG_DEU_MODELS = {
+    "prelude": "Prelude 9B",
+    "prelude_anneal2t": "Prelude 9B + 2T anneal",
+    "eurollm_9B_2512": "EuroLLM 9B 2512",
+    "apertus_8b": "Apertus 8B",
+    "olmo_3_1025_7b": "Olmo 3 7B",
+    "marin_8b": "Marin 8B",
+    "qwen3_8b": "Qwen3 8B",
+    "qwen35_9b": "Qwen3.5 9B",
+    "llama3_1_8b": "Llama 3.1 8B",
+}
+MULTILINGUAL_MODELS = {
+    "openeurollm/prelude-checkpoints": "Prelude 9B",
+    "utter-project/EuroLLM-9B": "EuroLLM 9B",
+    "swiss-ai/Apertus-8B-2509": "Apertus 8B",
+    "allenai/Olmo-3-1025-7B": "Olmo 3 7B",
+    "marin-community/marin-8b-base": "Marin 8B",
+    "Qwen/Qwen3-8B-Base": "Qwen3 8B",
+    "Qwen/Qwen3.5-9B-Base": "Qwen3.5 9B",
+    "meta-llama/Llama-3.1-8B": "Llama 3.1 8B",
+}
+NORWEGIAN_MODELS = {"prelude_anneal2t": "Prelude 9B + 2T anneal"}
+
+# One colour per model across all plots (models never shown together share
+# one). Fill encodes openness: solid = fully open (weights + data + code),
+# black horizontal hatch over the fill = open weights only. Every Prelude
+# variant is the same blue; the anneal has a white '\\' hatch.
+# All colours from Set3; its blue is reserved for Prelude.
+PRELUDE_BLUE = "#80b1d3"
+OPEN, WEIGHTS, ANNEAL = "fully open", "open weights", "anneal"
+STYLES = {   # name -> (colour, style)
+    "Prelude 9B": (PRELUDE_BLUE, OPEN),
+    "Prelude 9B + 2T anneal": (PRELUDE_BLUE, ANNEAL),
+    "Apertus 8B": ("#bebada", OPEN),
+    "Olmo 3 7B": ("#fccde5", OPEN),
+    "Marin 8B": ("#8dd3c7", OPEN),
+    "EuroLLM 9B": ("#fdb462", OPEN),   # Apache 2.0; counted as open (data not released)
+    "EuroLLM 9B 2512": ("#fdb462", OPEN),
+    "Qwen3 8B": ("#b3de69", WEIGHTS),
+    "Qwen3.5 9B": ("#bc80bd", WEIGHTS),
+    "Llama 3.1 8B": ("#fb8072", WEIGHTS),
+}
+
+
+# --- display names for benchmark groups ---------------------------------------
+GROUP_NAMES = {
+    "ARC Challenge_mt": "ARC Challenge MT",
+    "BeleBele": "Belebele",
+    "GlobalMMLU": "Global MMLU",
+    "MultiBlimp": "MultiBLiMP",
+    "Xcsqa": "XCSQA",
+    "global PIQA": "Global PIQA",
+    "xHellaswag": "xHellaSwag",
+    "noreval_multiblimp": "MultiBLiMP SME",
+    "INCLUDE": "INCLUDE", "SIB-200": "SIB-200", "OpenSubtitles": "OpenSubtitles",
+}
+WORDS = {   # per "_"-separated word; unlisted words are capitalised
+    "agieval": "AGIEval", "mc": "MC", "rc": "RC", "coqa": "CoQA",
+    "deepmind": "DeepMind", "drop": "DROP", "gsm": "GSM", "all": "",
+    "heldout": "Held-out", "mmlu": "MMLU", "mmmlu": "MMMLU", "filtered": "",
+    "stem": "STEM", "nonstem": "Non-STEM", "naturalqs": "NaturalQs",
+    "qa": "QA", "squad": "SQuAD", "glp": "GLP", "include": "INCLUDE",
+    "ask": "ASK", "gec": "GEC", "ncb": "NCB", "nocola": "NoCoLA",
+    "norbelebele": "NorBelebele", "norcommonsenseqa": "NorCommonsenseQA",
+    "norec": "NoReC", "noridiom": "NorIdiom", "noropenbookqa": "NorOpenBookQA",
+    "nofact": "no-fact", "norquad": "NorQuAD", "nortruthfulqa": "NorTruthfulQA",
+    "nrk": "NRK", "slide": "SLIDE", "norsumm": "NorSumm",
+    "nob": "NB", "nno": "NN", "eng": "EN", "sme": "SME",
+}
+LANG = {"nob": "NB", "nno": "NN", "eng": "EN", "sme": "SME"}
+PAIR_RE = re.compile(r"^(tatoeba|norsumm)_([a-z]{3})_([a-z]{3})(?:_translation)?$")
+
+
+def pretty_group(group: str) -> str:
+    """Display name: ARC Challenge_mt -> ARC Challenge MT, deu_mmlu_pro_mc ->
+    MMLU Pro MC, tatoeba_eng_nno -> Tatoeba EN→NN."""
+    if group in GROUP_NAMES:
+        return GROUP_NAMES[group]
+    if m := PAIR_RE.match(group):
+        return f"{WORDS.get(m[1], m[1].capitalize())} {LANG[m[2]]}→{LANG[m[3]]}"
+    group = re.sub(r"^deu_", "", group).replace("no_fact", "nofact")
+    words = [WORDS.get(w, w.capitalize()) for w in group.split("_")]
+    return " ".join(w for w in words if w)
+
+
+def pick_metric(df: pd.DataFrame, preference: list[str]) -> pd.DataFrame:
+    """Keep one metric per task: the first of `preference` it reports."""
+    df = df[df["metric"].isin(preference)]
+    rank = df["metric"].map({m: i for i, m in enumerate(preference)})
+    return df[rank == rank.groupby(df["task"]).transform("min")]
+
+
+def latest(df: pd.DataFrame) -> pd.DataFrame:
+    """Rows of each series' final checkpoint: the release (no checkpoint id)
+    when present, else the one with most tokens (ties: highest checkpoint)."""
+    ckpt = df["checkpoint"].fillna("<release>")
+    best = (df.assign(ckpt=ckpt, release=df["checkpoint"].isna(),
+                      t=df["tokens"].fillna(-1))
+            .sort_values(["release", "t", "ckpt"])
+            .groupby("series")["ckpt"].last())
+    return df[ckpt == df["series"].map(best)]
+
+
+def finish(df: pd.DataFrame, models: dict[str, str]) -> pd.DataFrame:
+    """Latest checkpoint per series, row labels with the tokens seen, and only
+    tasks every model has."""
+    df = latest(df[df["series"].isin(models)])
+    tok = df.groupby("series")["tokens"].first()
+    label = {s: models[s] + (f" ({tok[s] / 1e12:.1f}T)" if pd.notna(tok.get(s))
+                             else "") for s in df["series"].unique()}
+    df = df.assign(label=df["series"].map(label), name=df["series"].map(models),
+                   order=df["series"].map(list(models).index))
+    n = df["label"].nunique()
+    df = df[df.groupby("task")["label"].transform("nunique") == n]
+    return df.sort_values("order")
+
+
+# --- loaders: long frames with series, checkpoint, tokens, group, task, score,
+# translation (bool)
+
+def load_eng_deu(language: str) -> pd.DataFrame:
+    cols = ["model", "step", "task", "metric", "metric_filter", "score",
+            "task_type", "tokens_trained", "language", "subtask_tree"]
+    df = pd.concat([
+        pd.read_parquet(hf_hub_download(repo, "scores.parquet",
+                                        repo_type="dataset"), columns=cols)
+        for repo in (REPO_ID, ELLAMIND_REPO_ID)], ignore_index=True)
+    df = df[df["model"].isin(ENG_DEU_MODELS) & (df["language"] == language)]
+    parent = leaf_groups(df)
+    df = df[(df["task_type"] == "benchmark") & (df["metric_filter"] == "none")]
+    df = pick_metric(df, METRIC_PREFERENCE)
+    df = df.assign(series=df["model"],
+                   checkpoint=df["step"].map(lambda s: None if pd.isna(s)
+                                             else str(int(s))),
+                   tokens=df["tokens_trained"],
+                   group=df["task"].map(parent).fillna(df["task"]),
+                   translation=False)
+    return finish(df, ENG_DEU_MODELS)
+
+
+def load_multilingual() -> pd.DataFrame:
+    df = pd.read_parquet(hf_hub_download(
+        REPO_ID, "multilingual_scores.parquet", repo_type="dataset"))
+    df = df[~df["parent_task"].isin(EXCLUDE_BENCHMARKS)]
+    df = df[df["task"].map(task_language).map(filter_languages)]
+    anneal = df["revision"].str.startswith("anneal300b", na=False)
+    df = df.assign(series=df["model"].mask(anneal, "prelude_anneal300b"))
+    df = df[df["series"].isin(MULTILINGUAL_MODELS)]
+    rev = df["revision"]
+    df = df.assign(
+        checkpoint=rev.where(rev.notna(), None),
+        # anneal revisions count iterations globally (anneal300b_iter_0989075
+        # is 8.3T), so the pretraining tokens/step applies to them too
+        tokens=[None if pd.isna(r) else tokens_trained(m, r)
+                for m, r in zip(df["model"], rev)],
+        group=df["parent_task"],
+    )
+    main = pick_metric(df, METRIC_PREFERENCE).assign(translation=False)
+    trans = pick_metric(df[~df["task"].isin(main["task"])],
+                        TRANSLATION_METRICS).assign(translation=True)
+    return finish(pd.concat([main, trans]), MULTILINGUAL_MODELS)
+
+
+def load_norwegian() -> pd.DataFrame:
+    df = pd.read_parquet(hf_hub_download(
+        REPO_ID, "noreval_scores.parquet", repo_type="dataset"))
+    df = df[df["metric_filter"].fillna("none") == "none"]
+    # summarisation / truthfulqa-gen only report BLEU/ROUGE variants: dropped
+    main = pick_metric(df, METRIC_PREFERENCE).assign(translation=False)
+    trans = pick_metric(df[~df["task"].isin(main["task"])],
+                        TRANSLATION_METRICS).assign(translation=True)
+    trans = trans[trans["task"].str.contains("tatoeba|translation")]
+    df = pd.concat([main, trans])
+    df = df.assign(series=df["model"],
+                   checkpoint=df["step"].map(lambda s: None if pd.isna(s)
+                                             else str(int(s))),
+                   tokens=df["tokens_trained"],
+                   group=df["task"].str.replace(r"_p\d+$", "", regex=True))
+    return finish(df, NORWEGIAN_MODELS)
+
+
+# --- table and plot ----------------------------------------------------------
+
+def scores(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame | None]:
+    """(models x groups incl. AVG, models x translation groups or None).
+    Mean over tasks within a group, then over groups for AVG."""
+    def table(d):
+        return d.groupby(["label", "group"])["score"].mean().unstack()
+    acc = table(df[~df["translation"]])
+    acc["AVG"] = acc.mean(axis=1)
+    # open-weights models, then fully open ones, each by AVG weakest first;
+    # Prelude last in model order
+    first = df.drop_duplicates("label").set_index("label")
+    style = first["name"].map(lambda n: STYLES[n][1])
+    prelude = first.index.str.startswith("Prelude")
+    def by_avg(mask):
+        return list(acc.loc[first.index[mask], "AVG"].sort_values().index)
+    labels = (by_avg(~prelude & (style == WEIGHTS))
+              + by_avg(~prelude & (style != WEIGHTS))
+              + list(first.loc[prelude, "order"].sort_values().index))
+    acc = acc.reindex(labels)
+    tr = df[df["translation"]]
+    return acc, (table(tr).reindex(labels) if not tr.empty else None)
+
+
+def to_markdown(df: pd.DataFrame) -> str:
+    """Two decimals (one for 0-100 scores); best value of each column bold."""
+    lines = ["| model | " + " | ".join(df.columns) + " |",
+             "|---|" + "---:|" * len(df.columns)]
+    for label, row in df.iterrows():
+        cells = []
+        for col, v in row.items():
+            if pd.isna(v):
+                cells.append("–")
+                continue
+            digits = 1 if df[col].max() > 1.5 else 2
+            cell = f"{v:.{digits}f}"
+            if round(v, digits) == round(df[col].max(), digits):
+                cell = f"**{cell}**"
+            cells.append(cell)
+        lines.append(f"| {label} | " + " | ".join(cells) + " |")
+    return "\n".join(lines)
+
+
+def bars(ax, table: pd.DataFrame, names: dict[str, str]):
+    width = 0.8 / len(table)
+    for i, (label, row) in enumerate(table.iterrows()):
+        xs = [j + i * width - 0.4 + width / 2 for j in range(len(table.columns))]
+        color, style = STYLES[names[label]]
+        if style == WEIGHTS:
+            kw = dict(facecolor=color, edgecolor="black", hatch="--", linewidth=0)
+        elif style == ANNEAL:   # hatch lines take the edge colour: white
+            kw = dict(facecolor=color, edgecolor="white", hatch="\\\\", linewidth=0)
+        else:
+            kw = dict(facecolor=color, linewidth=0)
+        ax.bar(xs, row, width=width, label=label, **kw)
+    ax.set_xticks(range(len(table.columns)))
+    ax.set_xticklabels(table.columns, rotation=30, ha="right")
+    ax.grid(axis="y", alpha=0.3)
+    ax.set_axisbelow(True)
+
+
+def legend_boxes(ax, names: dict[str, str], fontsize: float = 10):
+    """Two legend boxes in the top-right corner, two rows each:
+    open-weight models | open-source models (Prelude included). Placed right
+    to left, each against the left edge of the previous one; a box is skipped
+    when it would be empty."""
+    handles, labels = ax.get_legend_handles_labels()
+    weights = [STYLES[names[l]][1] == WEIGHTS for l in labels]
+    boxes = [("Close/open-weight models", [i for i, w in enumerate(weights) if w]),
+             ("Open-source models", [i for i, w in enumerate(weights) if not w])]
+    renderer = ax.figure.canvas.get_renderer()
+    right = 0.995
+    for title, idx in reversed([(t, idx) for t, idx in boxes if idx]):
+        leg = ax.legend([handles[i] for i in idx], [labels[i] for i in idx],
+                        title=title, title_fontsize=fontsize, fontsize=fontsize,
+                        loc="upper right", bbox_to_anchor=(right, 0.99),
+                        ncol=-(-len(idx) // 2), framealpha=0.95,
+                        columnspacing=1.2, handlelength=1.8)
+        ax.add_artist(leg)
+        box = leg.get_window_extent(renderer).transformed(ax.transAxes.inverted())
+        right = box.x0 - 0.008
+
+
+def plot(name: str, df: pd.DataFrame, acc: pd.DataFrame,
+         trans: pd.DataFrame | None, out: str):
+    names = df.drop_duplicates("label").set_index("label")["name"].to_dict()
+    ncols = len(acc.columns) + (len(trans.columns) if trans is not None else 0)
+    fig, axes = plt.subplots(
+        1, 2 if trans is not None else 1,
+        figsize=(max(1.0 * ncols + 3.5, 9), 5.0), squeeze=False,
+        gridspec_kw={"width_ratios": [len(acc.columns), len(trans.columns) + 0.25]}
+        if trans is not None else None)
+    ax = axes[0, 0]
+    bars(ax, acc, names)
+    ax.set_ylabel("score (accuracy / exact-match)")
+    ax.set_title(f"{name} benchmarks")
+    ax.set_ylim(0, acc.max().max() * 1.35)  # headroom for the legends
+    if trans is not None:
+        ax2 = axes[0, 1]
+        bars(ax2, trans, names)
+        metrics = sorted(set(df.loc[df["translation"], "metric"]))
+        ax2.set_ylabel(f"{' / '.join(metrics)} (0-100)")
+        ax2.set_title("Translation")
+    fig.tight_layout()
+    legend_boxes(ax, names)   # after layout, so box widths are final
+    fig.savefig(out, dpi=150)
+    print(f"wrote {out}")
+
+
+README_INTRO = """# Prelude evaluations
+
+Compares OpenEuroLLM Prelude 9B with open-source and open-weight baselines of
+similar size on English, Multilingual, German and Norwegian benchmarks; run it
+with `uv run plot_results.py`. The script downloads the scores from the HF
+datasets `openeurollm/prelude-base-eval-scores` and `ellamind/eval-scores-ref`,
+takes each model's released model (else its latest checkpoint), keeps only the
+tasks every model of a category has, and averages tasks within each benchmark
+group and then over groups (AVG, which excludes BLEU/chrF translation scores).
+It writes one bar plot per category to `figures/` and regenerates the Results
+section below, where the best value of each column is bold and, in the plots,
+solid bars are open-source models and horizontally hatched bars open-weight
+models.
+
+"""
+
+
+def write_readme(sections: list[tuple[str, str, str]]):
+    """Keep README.md up to the "# Results" heading (or start it from
+    README_INTRO) and regenerate everything from that heading on."""
+    head = README_INTRO
+    if os.path.exists(README):
+        text = open(README).read()
+        if "\n# Results" in text:
+            head = text[:text.index("\n# Results") + 1]
+    today = datetime.date.today().isoformat()
+    parts = [head + "# Results\n\n"
+             f"Automatically generated by `plot_results.py` on {today}; do "
+             "not edit below this line.\n"]
+    for name, figure, table in sections:
+        parts.append(f"\n## {name}\n\n![{name} results]({figure})\n\n{table}\n")
+    with open(README, "w") as f:
+        f.write("".join(parts))
+    print(f"wrote {README}")
+
+
+def main():
+    os.makedirs(FIGURES, exist_ok=True)
+    groups = {
+        "English": lambda: load_eng_deu("eng"),
+        "Multilingual": load_multilingual,
+        "German": lambda: load_eng_deu("deu"),
+        "Norwegian": load_norwegian,
+    }
+    sections = []
+    for name, load in groups.items():
+        df = load()
+        df = df.assign(group=df["group"].map(pretty_group))
+        acc, trans = scores(df)
+        print(f"\nBenchmark {name}\n")
+        table = acc.drop(columns="AVG")
+        if trans is not None:
+            table = table.join(trans)
+        table["AVG"] = acc["AVG"]           # AVG last; excludes translation
+        md = to_markdown(table)
+        print(md)
+        print()
+        figure = f"figures/plot_results_{name.lower()}.png"
+        plot(name, df, acc, trans, os.path.join(HERE, figure))
+        sections.append((name, figure, md))
+    write_readme(sections)
+
+
+if __name__ == "__main__":
+    main()

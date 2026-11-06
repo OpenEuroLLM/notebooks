@@ -11,7 +11,8 @@ the dataset: the most common gap between evaluated steps (24000 for `iter_*`).
 A branch is scheduled when its step is a multiple of that gap, it is already
 evaluated, or it is the family's last branch. Branches in --exclude (default: iter_0953312, the 8T checkpoint,
 evaluated separately) are dropped from the schedule. A family with no evals yet (anneal2t)
-borrows the spacing of the other anneal family; override with --every PREFIX=STEPS.
+is evaluated every 24000 steps counted from its first branch (DEFAULT_EVERY);
+override with --every PREFIX=STEPS.
 The same schedule is used for DCLM. Expected tasks are what the current OELLM suites define, expanded
 with oellm-evals' own task-group code (task + n_shot):
 
@@ -24,8 +25,13 @@ the metric is ignored. Prints a summary and a checkpoint x task table per suite
 and writes missing_evals_multiling.csv / missing_evals_dclm.csv (one row per
 missing checkpoint/task).
 
+By default the dataset is read from the Hub (main branch). --parquet-dir reads a
+local copy of the auto-converted `refs/convert/parquet` branch instead
+(<dir>/<config>/train/0000.parquet, e.g. from snapshot_download(...,
+revision="refs/convert/parquet")).
+
 Usage: uv run show_missing.py [--every PREFIX=STEPS ...] [--oellm-repo PATH]
-                              [--no-compress] [-o OUT_DIR]
+                              [--parquet-dir DIR] [--no-compress] [-o OUT_DIR]
 """
 import argparse
 import sys
@@ -41,6 +47,8 @@ DATASET_MODEL = "openeurollm/prelude-checkpoints"
 BRANCH_PREFIXES = ("iter_", "anneal2t")
 # Evaluated by hand in a different, ad hoc setup, so not tracked here.
 DEFAULT_EXCLUDE = ["iter_0953312"]
+# Spacing of the annealing checkpoints we evaluate (the branches exist every 2400).
+DEFAULT_EVERY = {"anneal2t": 24000}
 
 # suite name -> (task group, dataset file, output csv)
 SUITES = {
@@ -94,7 +102,11 @@ def schedule(branches: list[str], evaluated: set[str], overrides: dict[str, int]
         last = max(fam_b, key=step)
         # the family's last branch is picked before excluding, so dropping the
         # 8T checkpoint does not promote iter_0952800 to "last"
-        chosen = [b for b in fam_b if step(b) % every == 0 or b in evaluated or b == last]
+        # a family with a forced spacing counts from its first branch (955200,
+        # 979200, ...); inferred ones are multiples of the gap, as in iter_*
+        base = min(map(step, fam_b)) if why == "--every" else 0
+        chosen = [b for b in fam_b
+                  if (step(b) - base) % every == 0 or b in evaluated or b == last]
         chosen = [b for b in chosen if b not in exclude]
         keep += chosen
         print_rows.append(f"  {fam + '*':44s} every {every:6d} steps ({why}): "
@@ -112,9 +124,12 @@ def expected_tasks(oellm_repo: Path, group: str) -> pd.DataFrame:
         columns=["task", "n_shot"]).drop_duplicates()
 
 
-def held(fname: str) -> pd.DataFrame:
+def held(fname: str, parquet_dir: Path | None = None) -> pd.DataFrame:
     """Prelude rows of one dataset file: revision, task, parent_task, num_fewshot."""
-    path = hf_hub_download(DATASET, fname, repo_type="dataset")
+    if parquet_dir is not None:
+        path = parquet_dir / fname.removesuffix(".parquet") / "train" / "0000.parquet"
+    else:
+        path = hf_hub_download(DATASET, fname, repo_type="dataset")
     d = pd.read_parquet(path, columns=["model", "revision", "task", "parent_task",
                                        "num_fewshot", "score"])
     return d[(d.model == DATASET_MODEL) & d.score.notna()]
@@ -222,9 +237,12 @@ def main() -> None:
                     help="oellm-evals checkout, for the task-group definitions")
     ap.add_argument("--every", action="append", default=[], metavar="PREFIX=STEPS",
                     help="evaluation spacing for branches starting with PREFIX "
-                         "(default: inferred), e.g. --every anneal2t=4800")
+                         "(default: inferred; anneal2t=24000), e.g. --every anneal2t=4800")
     ap.add_argument("--exclude", action="append", default=None, metavar="BRANCH",
                     help=f"branch to leave out (repeatable; default: {' '.join(DEFAULT_EXCLUDE)})")
+    ap.add_argument("--parquet-dir", type=Path, default=None,
+                    help="local copy of the refs/convert/parquet branch to read "
+                         "instead of the Hub's main branch")
     ap.add_argument("--no-compress", action="store_true",
                     help="print one table row per checkpoint")
     ap.add_argument("-o", "--out-dir", type=Path, default=HERE)
@@ -233,12 +251,12 @@ def main() -> None:
     branches = checkpoints()
     print(f"{len(branches)} branches on {MODEL_REPO}: "
           + ", ".join(f"{sum(c.startswith(p) for c in branches)} {p}*" for p in BRANCH_PREFIXES))
-    overrides = {k: int(v) for k, v in (e.split("=") for e in args.every)}
+    overrides = DEFAULT_EVERY | {k: int(v) for k, v in (e.split("=") for e in args.every)}
     exclude = set(DEFAULT_EXCLUDE if args.exclude is None else args.exclude)
-    ckpts = schedule(branches, set(held(SUITES["multilingual"][1]).revision), overrides,
+    ckpts = schedule(branches, set(held(SUITES["multilingual"][1], args.parquet_dir).revision), overrides,
                      exclude)
     for name, (group, fname, out_csv) in SUITES.items():
-        report(name, ckpts, expected_tasks(args.oellm_repo, group), held(fname),
+        report(name, ckpts, expected_tasks(args.oellm_repo, group), held(fname, args.parquet_dir),
                args.out_dir, out_csv, args.no_compress)
 
 
