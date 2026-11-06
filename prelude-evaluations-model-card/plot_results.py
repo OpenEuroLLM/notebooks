@@ -395,69 +395,103 @@ def to_markdown(df: pd.DataFrame) -> str:
     return "\n".join(lines)
 
 
+INK, MUTED, GRID, AVG_BAND = "#1f1f1e", "#6b6a64", "#e4e3dd", "#f3f2ee"
+LEGEND_BAND_IN = 1.0     # inches above the axes for the legends (title above)
+
+
 def bars(ax, table: pd.DataFrame, names: dict[str, str]):
-    width = 0.8 / len(table)
+    """Grouped bars, one group per column; a hairline gap between bars. The
+    AVG group sits on a light band."""
+    n = len(table)
+    slot = 0.84 / n
     for i, (label, row) in enumerate(table.iterrows()):
-        xs = [j + i * width - 0.4 + width / 2 for j in range(len(table.columns))]
+        xs = [j - 0.42 + slot * (i + 0.5) for j in range(len(table.columns))]
         color, style = STYLES[names[label]]
         if style == WEIGHTS:
-            kw = dict(facecolor=color, edgecolor="black", hatch="--", linewidth=0)
+            kw = dict(facecolor=color, edgecolor=INK, hatch="--", linewidth=0)
         elif style == ANNEAL:   # hatch lines take the edge colour: white
             kw = dict(facecolor=color, edgecolor="white", hatch="\\\\", linewidth=0)
         else:
             kw = dict(facecolor=color, linewidth=0)
-        ax.bar(xs, row, width=width, label=label, **kw)
+        ax.bar(xs, row, width=slot * 0.86, label=label, zorder=2, **kw)
+    if "AVG" in table.columns:
+        j = list(table.columns).index("AVG")
+        ax.axvspan(j - 0.5, j + 0.5, color=AVG_BAND, zorder=0, lw=0)
     ax.set_xticks(range(len(table.columns)))
-    ax.set_xticklabels(table.columns, rotation=30, ha="right")
-    ax.grid(axis="y", alpha=0.3)
+    ax.set_xticklabels(table.columns, rotation=35, ha="right",
+                       rotation_mode="anchor", fontsize=9.5, color=INK)
+    for tick in ax.get_xticklabels():
+        if tick.get_text() == "AVG":
+            tick.set_fontweight("bold")
+    ax.set_xlim(-0.6, len(table.columns) - 0.4)
+    ax.grid(axis="y", color=GRID, lw=0.8, zorder=1)
     ax.set_axisbelow(True)
+    for side in ("top", "right"):
+        ax.spines[side].set_visible(False)
+    ax.spines["left"].set_visible(False)
+    ax.spines["bottom"].set_color(MUTED)
+    ax.tick_params(axis="y", length=0, colors=MUTED, labelsize=9)
+    ax.tick_params(axis="x", length=0, pad=4)
 
 
-def legend_boxes(ax, names: dict[str, str], fontsize: float = 10):
-    """Two legend boxes in the top-right corner, two rows each:
-    open-weight models | open-source models (Prelude included). Placed right
-    to left, each against the left edge of the previous one; a box is skipped
-    when it would be empty."""
+def legend_boxes(fig, ax, names: dict[str, str], fontsize: float = 10):
+    """Two legend boxes in the band above the axes, right-aligned with them,
+    two rows each: open-weight models | open-source models (Prelude included).
+    Placed right to left in figure coordinates; an empty box is skipped.
+    Returns the top of the legends in figure coordinates."""
     handles, labels = ax.get_legend_handles_labels()
     weights = [STYLES[names[l]][1] == WEIGHTS for l in labels]
     boxes = [("Close/open-weight models", [i for i, w in enumerate(weights) if w]),
              ("Open-source models", [i for i, w in enumerate(weights) if not w])]
-    renderer = ax.figure.canvas.get_renderer()
-    right = 0.995
+    renderer = fig.canvas.get_renderer()
+    pos = ax.get_position()
+    right, top = fig.axes[-1].get_position().x1, pos.y1 + 0.01
+    legend_top = top
     for title, idx in reversed([(t, idx) for t, idx in boxes if idx]):
-        leg = ax.legend([handles[i] for i in idx], [labels[i] for i in idx],
-                        title=title, title_fontsize=fontsize, fontsize=fontsize,
-                        loc="upper right", bbox_to_anchor=(right, 0.99),
-                        ncol=-(-len(idx) // 2), framealpha=0.95,
-                        columnspacing=1.2, handlelength=1.8)
-        ax.add_artist(leg)
-        box = leg.get_window_extent(renderer).transformed(ax.transAxes.inverted())
-        right = box.x0 - 0.008
+        leg = fig.legend([handles[i] for i in idx], [labels[i] for i in idx],
+                         title=title, title_fontsize=fontsize, fontsize=fontsize,
+                         loc="lower right", bbox_to_anchor=(right, top),
+                         ncol=-(-len(idx) // 2), frameon=False,
+                         columnspacing=1.4, handlelength=1.8, handleheight=1.0,
+                         labelcolor=INK)
+        leg.get_title().set_color(MUTED)
+        leg._legend_box.align = "left"
+        box = leg.get_window_extent(renderer).transformed(fig.transFigure.inverted())
+        right, legend_top = box.x0 - 0.01, max(legend_top, box.y1)
+    return legend_top
 
 
 def plot(name: str, df: pd.DataFrame, acc: pd.DataFrame,
          trans: pd.DataFrame | None, out: str):
     names = df.drop_duplicates("label").set_index("label")["name"].to_dict()
     ncols = len(acc.columns) + (len(trans.columns) if trans is not None else 0)
+    height = 5.6
     fig, axes = plt.subplots(
         1, 2 if trans is not None else 1,
-        figsize=(max(1.0 * ncols + 3.5, 9), 5.0), squeeze=False,
-        gridspec_kw={"width_ratios": [len(acc.columns), len(trans.columns) + 0.25]}
+        figsize=(max(0.95 * ncols + 3.5, 11), height), squeeze=False,
+        gridspec_kw={"width_ratios": [len(acc.columns), len(trans.columns) + 0.4],
+                     "wspace": 0.08}
         if trans is not None else None)
     ax = axes[0, 0]
     bars(ax, acc, names)
-    ax.set_ylabel("score (accuracy / exact-match)")
-    ax.set_title(f"{name} benchmarks")
-    ax.set_ylim(0, acc.max().max() * 1.35)  # headroom for the legends
+    ax.set_ylabel("score (accuracy / exact match)", color=MUTED, fontsize=9.5)
+    top = acc.max().max()
+    ax.set_ylim(0, max(1.0, top + 0.03))
     if trans is not None:
         ax2 = axes[0, 1]
         bars(ax2, trans, names)
+        ax2.set_ylim(0, trans.max().max() * 1.12)
         metrics = sorted(set(df.loc[df["translation"], "metric"]))
-        ax2.set_ylabel(f"{' / '.join(metrics)} (0-100)")
-        ax2.set_title("Translation")
-    fig.tight_layout()
-    legend_boxes(ax, names)   # after layout, so box widths are final
-    fig.savefig(out, dpi=150)
+        ax2.set_ylabel(f"{' / '.join(m.upper() for m in metrics)} (0-100)",
+                       color=MUTED, fontsize=9.5)
+        ax2.set_title("Translation", loc="left", fontsize=10.5, color=INK, pad=6)
+    fig.tight_layout(rect=(0, 0, 1, 1 - LEGEND_BAND_IN / height))
+    legend_top = legend_boxes(fig, ax, names)   # after layout: positions final
+    fig.text(ax.get_position().x0, legend_top + 0.1 / height, f"{name} benchmarks",
+             ha="left", va="bottom", fontsize=14, fontweight="semibold", color=INK)
+    fig.savefig(out, dpi=160, facecolor="white", bbox_inches="tight",
+                pad_inches=0.15)
+    plt.close(fig)
     print(f"wrote {out}")
 
 
