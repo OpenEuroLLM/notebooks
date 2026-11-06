@@ -24,8 +24,9 @@ Sources (HF datasets):
                     subtask_tree, so e.g. the bigbench subtasks count once.
   Multilingual      multilingual_scores.parquet, OpenEuroLLM target languages
                     only, EXCLUDE_BENCHMARKS dropped.
-  Norwegian         noreval_scores.parquet (only Prelude + 2T anneal so far).
-                    Prompt variants (_p0.._p4) are averaged per task.
+  Norwegian         noreval_scores.parquet (LTG NorEval dashboard results),
+                    0-shot, each task's main metric (prompt variants already
+                    aggregated upstream).
 Tasks are kept only when every model of the category has them. Translation
 metrics (BLEU / chrF, 0-100) go to a separate panel and are left out of AVG.
 
@@ -172,7 +173,6 @@ TRANSLATION_METRICS = ["chrf", "chrf++", "bleu"]   # side panel, not in AVG
 # series id -> name. Rows / bars: open-weights, then fully open models (each by
 # AVG, weakest first), then Prelude.
 ENG_DEU_MODELS = {
-    "prelude": "Prelude 9B",
     "prelude_anneal2t": "Prelude 9B + 2T anneal",
     "eurollm_9B_2512": "EuroLLM 9B 2512",
     "apertus_8b": "Apertus 8B",
@@ -192,20 +192,31 @@ MULTILINGUAL_MODELS = {
     "Qwen/Qwen3.5-9B-Base": "Qwen3.5 9B",
     "meta-llama/Llama-3.1-8B": "Llama 3.1 8B",
 }
-NORWEGIAN_MODELS = {"prelude_anneal2t": "Prelude 9B + 2T anneal"}
+# NorEval covers ~80 models; the baselines are picked automatically as those
+# also used for English / German / Multilingual (see norwegian_models).
+NOREVAL_PRELUDE = {"openeurollm/prelude-base": "Prelude 9B + 2T anneal"}
+NOREVAL_SHOTS = 0
+# Shown names where they differ from the internal one (both Prelude rows are
+# "Prelude-base 9B", told apart by the tokens in the label).
+DISPLAY = {"Prelude 9B": "Prelude-base 9B",
+           "Prelude 9B + 2T anneal": "Prelude-base 9B"}
+# NorEval main metrics on a 0-1 scale; BLEU only for the translation tasks.
+# Summarisation / rewriting / truthfulqa-gen (ROUGE-L, BLEU) are dropped.
+NOREVAL_METRICS = ["acc", "f1", "em_first", "errant_f05"]
 
 # One colour per model across all plots (models never shown together share
 # one). Fill encodes openness: solid = fully open (weights + data + code),
 # black horizontal hatch over the fill = open weights only. Every Prelude
-# variant is the same blue; the anneal has a white '\\' hatch.
-# All colours from Set3; its blue is reserved for Prelude.
-PRELUDE_BLUE = "#80b1d3"
-OPEN, WEIGHTS, ANNEAL = "fully open", "open weights", "anneal"
+# variant is the same blue; the 8T (pre-anneal) one has a white '\\' hatch.
+# Baselines use Set3 colours (its blue left unused); Prelude a clearer blue.
+PRELUDE_BLUE = "#4c8fd6"
+PRELUDE_EDGE = "#1d4f8c"   # darker shade of PRELUDE_BLUE for the outline
+OPEN, WEIGHTS, INTERMEDIATE = "fully open", "open weights", "intermediate"
 STYLES = {   # name -> (colour, style)
-    "Prelude 9B": (PRELUDE_BLUE, OPEN),
-    "Prelude 9B + 2T anneal": (PRELUDE_BLUE, ANNEAL),
+    "Prelude 9B": (PRELUDE_BLUE, INTERMEDIATE),      # 8T, before the anneal
+    "Prelude 9B + 2T anneal": (PRELUDE_BLUE, OPEN),  # 10T, final
     "Apertus 8B": ("#bebada", OPEN),
-    "Olmo 3 7B": ("#fccde5", OPEN),
+    "Olmo 3 7B": ("#e5679f", OPEN),   # Olmo brand pink
     "Marin 8B": ("#8dd3c7", OPEN),
     "EuroLLM 9B": ("#fdb462", OPEN),   # Apache 2.0; counted as open (data not released)
     "EuroLLM 9B 2512": ("#fdb462", OPEN),
@@ -279,7 +290,8 @@ def finish(df: pd.DataFrame, models: dict[str, str]) -> pd.DataFrame:
     tasks every model has."""
     df = latest(df[df["series"].isin(models)])
     tok = df.groupby("series")["tokens"].first()
-    label = {s: models[s] + (f" ({tok[s] / 1e12:.1f}T)" if pd.notna(tok.get(s))
+    label = {s: DISPLAY.get(models[s], models[s])
+             + (f" ({tok[s] / 1e12:.1f}T)" if pd.notna(tok.get(s))
                              else "") for s in df["series"].unique()}
     df = df.assign(label=df["series"].map(label), name=df["series"].map(models),
                    order=df["series"].map(list(models).index))
@@ -334,12 +346,39 @@ def load_multilingual() -> pd.DataFrame:
     return finish(pd.concat([main, trans]), MULTILINGUAL_MODELS)
 
 
+def norm_name(name: str) -> str:
+    """Comparable model name: "OLMo3 7B" and "Olmo 3 7B" -> "olmo37b";
+    HF ids lose the org and a -Base / -pt suffix."""
+    name = re.sub(r"[-_](base|pt)$", "", name.split("/")[-1], flags=re.I)
+    return re.sub(r"[^a-z0-9]", "", name.lower())
+
+
+def norwegian_models(df: pd.DataFrame) -> dict[str, str]:
+    """NorEval model id -> our model name, for Prelude and every baseline of
+    the other categories that NorEval has. The HF id is matched before the
+    display name, so EuroLLM-9B-2512 maps to "EuroLLM 9B 2512" rather than
+    the original "EuroLLM 9B"."""
+    ours = [n for n in (*ENG_DEU_MODELS.values(), *MULTILINGUAL_MODELS.values())
+            if not n.startswith("Prelude")]
+    by_norm = {norm_name(n): n for n in ours}
+    models = dict(NOREVAL_PRELUDE)
+    for model, display in df[["model", "model_display_name"]].drop_duplicates().values:
+        for key in (norm_name(model), norm_name(display)):
+            if key in by_norm and model not in models:
+                models[model] = by_norm[key]
+    order = {n: i for i, n in enumerate(dict.fromkeys(
+        [*NOREVAL_PRELUDE.values(), *ours]))}
+    return dict(sorted(models.items(), key=lambda kv: order[kv[1]]))
+
+
 def load_norwegian() -> pd.DataFrame:
     df = pd.read_parquet(hf_hub_download(
         REPO_ID, "noreval_scores.parquet", repo_type="dataset"))
-    df = df[df["metric_filter"].fillna("none") == "none"]
-    # summarisation / truthfulqa-gen only report BLEU/ROUGE variants: dropped
-    main = pick_metric(df, METRIC_PREFERENCE).assign(translation=False)
+    models = norwegian_models(df)
+    print("NorEval baselines:", ", ".join(f"{m} -> {n}" for m, n in models.items()))
+    df = df[(df["metric_filter"].fillna("none") == "none")
+            & (df["num_fewshot"] == NOREVAL_SHOTS)]
+    main = pick_metric(df, NOREVAL_METRICS).assign(translation=False)
     trans = pick_metric(df[~df["task"].isin(main["task"])],
                         TRANSLATION_METRICS).assign(translation=True)
     trans = trans[trans["task"].str.contains("tatoeba|translation")]
@@ -348,8 +387,8 @@ def load_norwegian() -> pd.DataFrame:
                    checkpoint=df["step"].map(lambda s: None if pd.isna(s)
                                              else str(int(s))),
                    tokens=df["tokens_trained"],
-                   group=df["task"].str.replace(r"_p\d+$", "", regex=True))
-    return finish(df, NORWEGIAN_MODELS)
+                   group=df["task"])
+    return finish(df, models)
 
 
 # --- table and plot ----------------------------------------------------------
@@ -361,26 +400,32 @@ def scores(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame | None]:
         return d.groupby(["label", "group"])["score"].mean().unstack()
     acc = table(df[~df["translation"]])
     acc["AVG"] = acc.mean(axis=1)
-    # open-weights models, then fully open ones, each by AVG weakest first;
-    # Prelude last in model order
+    # fully open models by AVG (weakest first), then Prelude, then -- after a
+    # gap in the plots -- the open-weight models, also by AVG
     first = df.drop_duplicates("label").set_index("label")
     style = first["name"].map(lambda n: STYLES[n][1])
     prelude = first.index.str.startswith("Prelude")
     def by_avg(mask):
         return list(acc.loc[first.index[mask], "AVG"].sort_values().index)
-    labels = (by_avg(~prelude & (style == WEIGHTS))
-              + by_avg(~prelude & (style != WEIGHTS))
-              + list(first.loc[prelude, "order"].sort_values().index))
+    labels = (by_avg(~prelude & (style != WEIGHTS))
+              + list(first.loc[prelude, "order"].sort_values().index)
+              + by_avg(~prelude & (style == WEIGHTS)))
     acc = acc.reindex(labels)
     tr = df[df["translation"]]
     return acc, (table(tr).reindex(labels) if not tr.empty else None)
 
 
-def to_markdown(df: pd.DataFrame) -> str:
-    """Two decimals (one for 0-100 scores); best value of each column bold."""
+def to_markdown(df: pd.DataFrame, names: dict[str, str]) -> str:
+    """Two decimals (one for 0-100 scores); best value of each column bold.
+    A heading row opens each openness group (fully open / open weights)."""
     lines = ["| model | " + " | ".join(df.columns) + " |",
              "|---|" + "---:|" * len(df.columns)]
+    current = None
     for label, row in df.iterrows():
+        group = GROUP_TITLES[STYLES[names[label]][1] == WEIGHTS]
+        if group != current:
+            lines.append(f"| ***{group}*** |" + " |" * len(df.columns))
+            current = group
         cells = []
         for col, v in row.items():
             if pd.isna(v):
@@ -396,23 +441,31 @@ def to_markdown(df: pd.DataFrame) -> str:
 
 
 INK, MUTED, GRID, AVG_BAND = "#1f1f1e", "#6b6a64", "#e4e3dd", "#f3f2ee"
+GROUP_TITLES = {False: "Fully open models", True: "Close/open-weight models"}
+GROUP_GAP = 0.8          # extra space between the two groups, in bar widths
 LEGEND_BAND_IN = 1.0     # inches above the axes for the legends (title above)
 
 
 def bars(ax, table: pd.DataFrame, names: dict[str, str]):
-    """Grouped bars, one group per column; a hairline gap between bars. The
-    AVG group sits on a light band."""
-    n = len(table)
-    slot = 0.84 / n
+    """Grouped bars, one group per column; a hairline gap between bars, a wider
+    one between fully open and open-weight models. AVG sits on a light band."""
+    weights = [STYLES[names[l]][1] == WEIGHTS for l in table.index]
+    gap = GROUP_GAP if any(weights) and not all(weights) else 0
+    slot = 0.86 / (len(table) + gap)
     for i, (label, row) in enumerate(table.iterrows()):
-        xs = [j - 0.42 + slot * (i + 0.5) for j in range(len(table.columns))]
+        offset = slot * (i + 0.5 + (gap if weights[i] else 0))
+        xs = [j - 0.43 + offset for j in range(len(table.columns))]
         color, style = STYLES[names[label]]
         if style == WEIGHTS:
-            kw = dict(facecolor=color, edgecolor=INK, hatch="--", linewidth=0)
-        elif style == ANNEAL:   # hatch lines take the edge colour: white
+            kw = dict(facecolor=color, edgecolor="black", hatch="--", linewidth=0,
+                      hatch_linewidth=0.4)
+        elif style == INTERMEDIATE:
             kw = dict(facecolor=color, edgecolor="white", hatch="\\\\", linewidth=0)
         else:
             kw = dict(facecolor=color, linewidth=0)
+        if names[label].startswith("Prelude"):   # outline only our model
+            kw.update(edgecolor=PRELUDE_EDGE, linewidth=0.9,
+                      hatchcolor=kw.get("edgecolor", "white"))
         ax.bar(xs, row, width=slot * 0.86, label=label, zorder=2, **kw)
     if "AVG" in table.columns:
         j = list(table.columns).index("AVG")
@@ -436,16 +489,24 @@ def bars(ax, table: pd.DataFrame, names: dict[str, str]):
 
 def legend_boxes(fig, ax, names: dict[str, str], fontsize: float = 10):
     """Two legend boxes in the band above the axes, right-aligned with them,
-    two rows each: open-weight models | open-source models (Prelude included).
+    two rows each, in bar order: fully open models (Prelude included) |
+    open-weight models.
     Placed right to left in figure coordinates; an empty box is skipped.
     Returns the top of the legends in figure coordinates."""
     handles, labels = ax.get_legend_handles_labels()
     weights = [STYLES[names[l]][1] == WEIGHTS for l in labels]
-    boxes = [("Close/open-weight models", [i for i, w in enumerate(weights) if w]),
-             ("Open-source models", [i for i, w in enumerate(weights) if not w])]
+    boxes = [(GROUP_TITLES[flag], [i for i, w in enumerate(weights) if w == flag])
+             for flag in (False, True)]
     renderer = fig.canvas.get_renderer()
     pos = ax.get_position()
-    right, top = fig.axes[-1].get_position().x1, pos.y1 + 0.01
+    right, top = fig.axes[-1].get_position().x1, pos.y1
+    for a in fig.axes:          # clear panel titles such as "Translation"
+        if a.get_title(loc="left"):
+            top = max(top, a.title.get_window_extent(renderer).transformed(
+                fig.transFigure.inverted()).y1 if a.get_title() else
+                a._left_title.get_window_extent(renderer).transformed(
+                    fig.transFigure.inverted()).y1)
+    top += 0.01
     legend_top = top
     for title, idx in reversed([(t, idx) for t, idx in boxes if idx]):
         leg = fig.legend([handles[i] for i in idx], [labels[i] for i in idx],
@@ -497,17 +558,18 @@ def plot(name: str, df: pd.DataFrame, acc: pd.DataFrame,
 
 README_INTRO = """# Prelude evaluations
 
-Compares OpenEuroLLM Prelude 9B with open-source and open-weight baselines of
-similar size on English, Multilingual, German and Norwegian benchmarks; run it
-with `uv run plot_results.py`. The script downloads the scores from the HF
-datasets `openeurollm/prelude-base-eval-scores` and `ellamind/eval-scores-ref`,
-takes each model's released model (else its latest checkpoint), keeps only the
-tasks every model of a category has, and averages tasks within each benchmark
-group and then over groups (AVG, which excludes BLEU/chrF translation scores).
-It writes one bar plot per category to `figures/` and regenerates the Results
+Compares OpenEuroLLM Prelude 9B with fully open models (open weights and
+training data) and open-weight models of similar size on English,
+Multilingual, German and Norwegian benchmarks; run it with
+`uv run plot_results.py`. The script downloads the scores from the HF datasets
+`openeurollm/prelude-base-eval-scores` and `ellamind/eval-scores-ref`, takes
+each model's released model (else its latest checkpoint), keeps only the tasks
+every model of a category has, and averages tasks within each benchmark group
+and then over groups (AVG, which excludes BLEU/chrF translation scores). It
+writes one bar plot per category to `figures/` and regenerates the Results
 section below, where the best value of each column is bold and, in the plots,
-solid bars are open-source models and horizontally hatched bars open-weight
-models.
+fully open models (solid bars, Prelude last) are followed by open-weight
+models (horizontally hatched bars).
 
 """
 
@@ -549,7 +611,8 @@ def main():
         if trans is not None:
             table = table.join(trans)
         table["AVG"] = acc["AVG"]           # AVG last; excludes translation
-        md = to_markdown(table)
+        names = df.drop_duplicates("label").set_index("label")["name"].to_dict()
+        md = to_markdown(table, names)
         print(md)
         print()
         figure = f"figures/plot_results_{name.lower()}.png"
