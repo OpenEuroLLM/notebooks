@@ -207,8 +207,8 @@ NOREVAL_METRICS = ["acc", "f1", "em_first", "errant_f05"]
 # One colour per model across all plots (models never shown together share
 # one). Hatch encodes openness: white diagonal = fully open (weights + data +
 # code), black diagonal = open weights only. Every Prelude checkpoint
-# is the same blue with a dark-blue outline and hatch (8T and 10T never
-# share a plot).
+# is the same blue with a dark-blue outline and the white fully-open hatch
+# (8T and 10T never share a plot).
 # Baselines use Set3 colours (its blue left unused); Prelude a clearer blue.
 PRELUDE_BLUE = "#4c8fd6"
 PRELUDE_EDGE = "#1d4f8c"   # darker shade of PRELUDE_BLUE for the outline
@@ -464,8 +464,7 @@ def bars(ax, table: pd.DataFrame, names: dict[str, str]):
             kw = dict(facecolor=color, edgecolor="white", hatch="\\\\", linewidth=0,
                       hatch_linewidth=0.8)
         if names[label].startswith("Prelude"):   # outline only our model
-            kw.update(edgecolor=PRELUDE_EDGE, linewidth=0.9, hatchcolor=PRELUDE_EDGE,
-                      hatch_linewidth=1.2)
+            kw.update(edgecolor=PRELUDE_EDGE, linewidth=0.9, hatchcolor="white")
         ax.bar(xs, row, width=slot * 0.86, label=label, zorder=2, **kw)
     if "AVG" in table.columns:
         j = list(table.columns).index("AVG")
