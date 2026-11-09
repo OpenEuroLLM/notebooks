@@ -205,15 +205,16 @@ DISPLAY = {"Prelude 9B": "Prelude-base 9B",
 NOREVAL_METRICS = ["acc", "f1", "em_first", "errant_f05"]
 
 # One colour per model across all plots (models never shown together share
-# one). Fill encodes openness: solid = fully open (weights + data + code),
-# black horizontal hatch over the fill = open weights only. Every Prelude
-# variant is the same blue; the 8T (pre-anneal) one has a white '\\' hatch.
+# one). Hatch encodes openness: white diagonal = fully open (weights + data +
+# code), black diagonal = open weights only. Every Prelude checkpoint
+# is the same blue with a dark-blue outline and hatch (8T and 10T never
+# share a plot).
 # Baselines use Set3 colours (its blue left unused); Prelude a clearer blue.
 PRELUDE_BLUE = "#4c8fd6"
 PRELUDE_EDGE = "#1d4f8c"   # darker shade of PRELUDE_BLUE for the outline
-OPEN, WEIGHTS, INTERMEDIATE = "fully open", "open weights", "intermediate"
+OPEN, WEIGHTS = "fully open", "open weights"
 STYLES = {   # name -> (colour, style)
-    "Prelude 9B": (PRELUDE_BLUE, INTERMEDIATE),      # 8T, before the anneal
+    "Prelude 9B": (PRELUDE_BLUE, OPEN),              # 8T, before the anneal
     "Prelude 9B + 2T anneal": (PRELUDE_BLUE, OPEN),  # 10T, final
     "Apertus 8B": ("#bebada", OPEN),
     "Olmo 3 7B": ("#e5679f", OPEN),   # Olmo brand pink
@@ -457,15 +458,14 @@ def bars(ax, table: pd.DataFrame, names: dict[str, str]):
         xs = [j - 0.43 + offset for j in range(len(table.columns))]
         color, style = STYLES[names[label]]
         if style == WEIGHTS:
-            kw = dict(facecolor=color, edgecolor="black", hatch="--", linewidth=0,
-                      hatch_linewidth=0.4)
-        elif style == INTERMEDIATE:
-            kw = dict(facecolor=color, edgecolor="white", hatch="\\\\", linewidth=0)
-        else:
-            kw = dict(facecolor=color, linewidth=0)
+            kw = dict(facecolor=color, edgecolor="black", hatch="\\\\", linewidth=0,
+                      hatch_linewidth=0.8)
+        else:                   # fully open: white diagonal hatch
+            kw = dict(facecolor=color, edgecolor="white", hatch="\\\\", linewidth=0,
+                      hatch_linewidth=0.8)
         if names[label].startswith("Prelude"):   # outline only our model
-            kw.update(edgecolor=PRELUDE_EDGE, linewidth=0.9,
-                      hatchcolor=kw.get("edgecolor", "white"))
+            kw.update(edgecolor=PRELUDE_EDGE, linewidth=0.9, hatchcolor=PRELUDE_EDGE,
+                      hatch_linewidth=1.2)
         ax.bar(xs, row, width=slot * 0.86, label=label, zorder=2, **kw)
     if "AVG" in table.columns:
         j = list(table.columns).index("AVG")
@@ -568,8 +568,8 @@ every model of a category has, and averages tasks within each benchmark group
 and then over groups (AVG, which excludes BLEU/chrF translation scores). It
 writes one bar plot per category to `figures/` and regenerates the Results
 section below, where the best value of each column is bold and, in the plots,
-fully open models (solid bars, Prelude last) are followed by open-weight
-models (horizontally hatched bars).
+fully open models (white diagonal hatching, Prelude last, outlined) are
+followed by open-weight models (black diagonal hatching).
 
 """
 
