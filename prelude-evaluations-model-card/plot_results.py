@@ -12,7 +12,9 @@ German and Norwegian.
 
 For each category: a markdown table (models x benchmark groups, plus AVG, best
 value of each column in bold) and a grouped bar plot
-figures/plot_results_<category>.png. Both are also written to README.md, whose
+figures/plot_results_<category>_all.png (English and Multilingual also
+_decontaminated_only / _non_decontaminated_only). The "all" and "decontaminated_only" tables and
+figures are also written to README.md, whose
 text above "# Results" is kept and everything from it on regenerated. Each
 model is shown at a single checkpoint: its released model when there is one,
 else its latest checkpoint.
@@ -237,6 +239,7 @@ GROUP_NAMES = {
     "global PIQA": "Global PIQA",
     "xHellaswag": "xHellaSwag",
     "noreval_multiblimp": "MultiBLiMP SME",
+    "heldout": "GPQA",   # English held-out group is only GPQA diamond + main
     "INCLUDE": "INCLUDE", "SIB-200": "SIB-200", "OpenSubtitles": "OpenSubtitles",
 }
 WORDS = {   # per "_"-separated word; unlisted words are capitalised
@@ -592,6 +595,42 @@ def write_readme(sections: list[tuple[str, str, str]]):
     print(f"wrote {README}")
 
 
+# Tasks of the benchmarks that were decontaminated from the training data
+# (English: MMLU, Lambada, ARC, HellaSwag, CommonsenseQA, PIQA, GSM8K, MATH,
+# GPQA; Multilingual: ARC MT, Belebele, Global MMLU, INCLUDE, MultiBLiMP,
+# xHellaSwag, XCSQA). MMLU Pro and Global PIQA are not on the list.
+DECONTAMINATED_RE = re.compile(
+    r"^(mmlu_(hum|other|ss|stem)_|lambada|arc_(challenge|easy)|hellaswag"
+    r"|x?csqa|piqa_mc|gsm8k|minerva_math|gpqa|belebele|global_mmlu|include_"
+    r"|multiblimp)")
+# Only applied where the task names match the decontaminated benchmarks; the
+# German (translated) and Norwegian (NorEval) suites only get the "all" plot.
+DECONTAMINATION_SPLITS = {"English", "Multilingual"}
+SUBSETS = {   # suffix -> (title suffix, task filter)
+    "all": ("", lambda t: True),
+    "decontaminated_only": (" (decontaminated only)",
+                            lambda t: bool(DECONTAMINATED_RE.match(t))),
+    "non_decontaminated_only": (" (non-decontaminated only)",
+                                lambda t: not DECONTAMINATED_RE.match(t)),
+}
+
+
+def report(name: str, df: pd.DataFrame, figure: str) -> str:
+    """Print the markdown table, write the plot; return the table."""
+    acc, trans = scores(df)
+    print(f"\nBenchmark {name}\n")
+    table = acc.drop(columns="AVG")
+    if trans is not None:
+        table = table.join(trans)
+    table["AVG"] = acc["AVG"]           # AVG last; excludes translation
+    names = df.drop_duplicates("label").set_index("label")["name"].to_dict()
+    md = to_markdown(table, names)
+    print(md)
+    print()
+    plot(name, df, acc, trans, os.path.join(HERE, figure))
+    return md
+
+
 def main():
     os.makedirs(FIGURES, exist_ok=True)
     groups = {
@@ -604,19 +643,13 @@ def main():
     for name, load in groups.items():
         df = load()
         df = df.assign(group=df["group"].map(pretty_group))
-        acc, trans = scores(df)
-        print(f"\nBenchmark {name}\n")
-        table = acc.drop(columns="AVG")
-        if trans is not None:
-            table = table.join(trans)
-        table["AVG"] = acc["AVG"]           # AVG last; excludes translation
-        names = df.drop_duplicates("label").set_index("label")["name"].to_dict()
-        md = to_markdown(table, names)
-        print(md)
-        print()
-        figure = f"figures/plot_results_{name.lower()}.png"
-        plot(name, df, acc, trans, os.path.join(HERE, figure))
-        sections.append((name, figure, md))
+        subsets = (SUBSETS if name in DECONTAMINATION_SPLITS
+                   else {"all": SUBSETS["all"]})
+        for suffix, (title, keep) in subsets.items():
+            figure = f"figures/plot_results_{name.lower()}_{suffix}.png"
+            md = report(name + title, df[df["task"].map(keep)], figure)
+            if suffix in ("all", "decontaminated_only"):
+                sections.append((name + title, figure, md))
     write_readme(sections)
 
 
