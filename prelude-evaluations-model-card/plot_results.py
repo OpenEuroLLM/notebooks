@@ -13,9 +13,10 @@ German and Norwegian.
 For each category: a markdown table (models x benchmark groups, plus AVG, best
 value of each column in bold) and a grouped bar plot
 figures/plot_results_<category>_all.png (English and Multilingual also
-_decontaminated_only / _non_decontaminated_only). The "all" and "decontaminated_only" tables and
-figures are also written to README.md, whose
-text above "# Results" is kept and everything from it on regenerated. Each
+_decontaminated_only / _non_decontaminated_only). The tables and figures are
+also written to README.md (decontaminated_only for English and Multilingual,
+all for German and Norwegian), whose text above "# Results" is kept and
+everything from it on regenerated. Each
 model is shown at a single checkpoint: its released model when there is one,
 else its latest checkpoint.
 
@@ -648,7 +649,7 @@ def main():
         for suffix, (title, keep) in subsets.items():
             figure = f"figures/plot_results_{name.lower()}_{suffix}.png"
             md = report(name + title, df[df["task"].map(keep)], figure)
-            if suffix in ("all", "decontaminated_only"):
+            if suffix == ("decontaminated_only" if len(subsets) > 1 else "all"):
                 sections.append((name + title, figure, md))
     write_readme(sections)
 
