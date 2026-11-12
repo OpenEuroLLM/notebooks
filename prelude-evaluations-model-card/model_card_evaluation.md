@@ -4,6 +4,7 @@ We report evaluations in this model card on English and Multilingual benchmarks 
 
 **English & Multilingual evaluations.**
 We show here the performance on English & Multilingual evaluations.
+Note that we report the performance of models which are trained mostly in English (Olmo3 and Marin) to illustrate the benefit over English models for over languages even though those models are not expected to perform very well on non English benchmarks.
 
 ![English benchmarks (decontaminated tasks)](figures/plot_results_english_decontaminated_only.png)
 
