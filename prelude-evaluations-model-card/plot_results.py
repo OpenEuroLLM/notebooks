@@ -181,7 +181,7 @@ ENG_DEU_MODELS = {
     "apertus_8b": "Apertus 8B",
     "olmo_3_1025_7b": "Olmo 3 7B",
     "marin_8b": "Marin 8B",
-    "qwen3_8b": "Qwen3 8B",
+    #"qwen3_8b": "Qwen3 8B",    # only including one Qwen (3.5 9B)
     "qwen35_9b": "Qwen3.5 9B",
     "llama3_1_8b": "Llama 3.1 8B",
 }
@@ -191,7 +191,7 @@ MULTILINGUAL_MODELS = {
     "swiss-ai/Apertus-8B-2509": "Apertus 8B",
     "allenai/Olmo-3-1025-7B": "Olmo 3 7B",
     "marin-community/marin-8b-base": "Marin 8B",
-    "Qwen/Qwen3-8B-Base": "Qwen3 8B",
+    #"Qwen/Qwen3-8B-Base": "Qwen3 8B",    # only including one Qwen (3.5 9B)
     "Qwen/Qwen3.5-9B-Base": "Qwen3.5 9B",
     "meta-llama/Llama-3.1-8B": "Llama 3.1 8B",
 }
@@ -207,26 +207,32 @@ DISPLAY = {"Prelude 9B": "Prelude-base 9B",
 # Summarisation / rewriting / truthfulqa-gen (ROUGE-L, BLEU) are dropped.
 NOREVAL_METRICS = ["acc", "f1", "em_first", "errant_f05"]
 
-# One colour per model across all plots (models never shown together share
-# one). Hatch encodes openness: white diagonal = fully open (weights + data +
-# code), black diagonal = open weights only. Every Prelude checkpoint
-# is the same blue with a dark-blue outline and the white fully-open hatch
-# (8T and 10T never share a plot).
-# Baselines use Set3 colours (its blue left unused); Prelude a clearer blue.
+
+# Lighten a color by given amount
+def lighten(color, amount=0.5):
+    import matplotlib.colors as mcolors
+    rgb = mcolors.to_rgb(color)
+    return tuple(c + (1 - c) * amount for c in rgb)
+
+
+# One colour per model across all plots (models never shown together
+# share one). Every Prelude checkpoint is the same blue with a
+# dark-blue outline (8T and 10T never share a plot).
 PRELUDE_BLUE = "#4c8fd6"
 PRELUDE_EDGE = "#1d4f8c"   # darker shade of PRELUDE_BLUE for the outline
 OPEN, WEIGHTS = "fully open", "open weights"
 STYLES = {   # name -> (colour, style)
     "Prelude 9B": (PRELUDE_BLUE, OPEN),              # 8T, before the anneal
     "Prelude 9B + 2T anneal": (PRELUDE_BLUE, OPEN),  # 10T, final
-    "Apertus 8B": ("#bebada", OPEN),
+    "Apertus 8B": ("#da291c", OPEN),    # Swiss flag red
     "Olmo 3 7B": ("#e5679f", OPEN),   # Olmo brand pink
-    "Marin 8B": ("#8dd3c7", OPEN),
-    "EuroLLM 9B": ("#fdb462", OPEN),   # Apache 2.0; counted as open (data not released)
-    "EuroLLM 9B 2512": ("#fdb462", OPEN),
-    "Qwen3 8B": ("#b3de69", WEIGHTS),
-    "Qwen3.5 9B": ("#bc80bd", WEIGHTS),
-    "Llama 3.1 8B": ("#fb8072", WEIGHTS),
+    "Marin 8B": (lighten("#192026", 0.3), OPEN),    # Marin logo blue-gray
+    # EuroLLM is Apache 2.0; counted as open (data not released)
+    "EuroLLM 9B": (lighten("#ec5926", 0.3), OPEN),    # Utter logo orange
+    "EuroLLM 9B 2512": (lighten("#ec5926", 0.3), OPEN),
+    "Qwen3 8B": (lighten("#6950e8"), WEIGHTS),    # Qwen logo color
+    "Qwen3.5 9B": (lighten("#6950e8"), WEIGHTS),    # Qwen logo color
+    "Llama 3.1 8B": (lighten("#0081fb"), WEIGHTS),    # Meta logo blue
 }
 
 
@@ -462,13 +468,13 @@ def bars(ax, table: pd.DataFrame, names: dict[str, str]):
         xs = [j - 0.43 + offset for j in range(len(table.columns))]
         color, style = STYLES[names[label]]
         if style == WEIGHTS:
-            kw = dict(facecolor=color, edgecolor="black", hatch="\\\\", linewidth=0,
-                      hatch_linewidth=0.8)
-        else:                   # fully open: white diagonal hatch
-            kw = dict(facecolor=color, edgecolor="white", hatch="\\\\", linewidth=0,
-                      hatch_linewidth=0.8)
+            hatchcolor = lighten(color, 0.4)
+            kw = dict(facecolor=color, edgecolor="white", hatch='\\\\\\',
+                      linewidth=0, hatch_linewidth=0.75, hatchcolor=hatchcolor)
+        else:
+            kw = dict(facecolor=color, edgecolor="white")
         if names[label].startswith("Prelude"):   # outline only our model
-            kw.update(edgecolor=PRELUDE_EDGE, linewidth=0.9, hatchcolor="white")
+            kw.update(edgecolor=PRELUDE_EDGE, linewidth=0.5, hatchcolor="white")
         ax.bar(xs, row, width=slot * 0.86, label=label, zorder=2, **kw)
     if "AVG" in table.columns:
         j = list(table.columns).index("AVG")
