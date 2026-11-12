@@ -8,14 +8,14 @@
 # ]
 # ///
 """Final-checkpoint results of Prelude vs baselines on English, Multilingual,
-German and Norwegian.
+German, Norwegian and Finnish.
 
 For each category: a markdown table (models x benchmark groups, plus AVG, best
 value of each column in bold) and a grouped bar plot
 figures/plot_results_<category>_all.png (English and Multilingual also
 _decontaminated_only / _non_decontaminated_only). The tables and figures are
 also written to README.md (decontaminated_only for English and Multilingual,
-all for German and Norwegian), whose text above "# Results" is kept and
+all for German, Norwegian and Finnish), whose text above "# Results" is kept and
 everything from it on regenerated. Each
 model is shown at a single checkpoint: its released model when there is one,
 else its latest checkpoint.
@@ -30,12 +30,15 @@ Sources (HF datasets):
   Norwegian         noreval_scores.parquet (LTG NorEval dashboard results),
                     0-shot, each task's main metric (prompt variants already
                     aggregated upstream).
+  Finnish           finnish_lm_eval_results/ (FIN-bench v2 lm-eval JSONs),
+                    5-shot, each benchmark averaged over its 5 prompts.
 Tasks are kept only when every model of the category has them. Translation
 metrics (BLEU / chrF, 0-100) go to a separate panel and are left out of AVG.
 
 Usage: uv run plot_results.py
 """
 import datetime
+import glob
 import json
 import os
 import re
@@ -207,6 +210,40 @@ DISPLAY = {"Prelude 9B": "Prelude-base 9B",
 # Summarisation / rewriting / truthfulqa-gen (ROUGE-L, BLEU) are dropped.
 NOREVAL_METRICS = ["acc", "f1", "em_first", "errant_f05"]
 
+# Finnish: FIN-bench v2 lm-eval results (finnish_lm_eval_results/<model>/*.json),
+# 5-shot, each benchmark averaged over its 5 prompt variants (group_* rows).
+# Keyed by the lm-eval `pretrained` (and revision for Prelude). Left out:
+# Llama-Poro-2-8B-Instruct (instruction tuned), OLMo 2 7B (superseded by
+# Olmo 3) and the smaller TurkuNLP gpt3-finnish models.
+FINNISH_DIR = "finnish_lm_eval_results"
+FINNISH_MODELS = {
+    "openeurollm/prelude@anneal2t_multilingual1_dominant1_iter_1192093":
+        "Prelude 9B + 2T anneal",
+    "utter-project/EuroLLM-9B": "EuroLLM 9B",
+    "swiss-ai/Apertus-8B-2509": "Apertus 8B",
+    "allenai/Olmo-3-1025-7B": "Olmo 3 7B",
+    "marin-community/marin-8b-base": "Marin 8B",
+    "BSC-LT/salamandra-7b": "Salamandra 7B",
+    "TurkuNLP/gpt3-finnish-8B": "FinGPT3 8B",
+    "Qwen/Qwen3.5-9B-Base": "Qwen3.5 9B",
+}
+FINNISH_GROUPS = {   # group task -> (shown name, metric)
+    "group_arc_challenge_fi_multi_mcf_fbv2": ("ARC Challenge FI", "acc"),
+    "group_belebele_multi_mcf_fbv2": ("Belebele FI", "acc"),
+    "group_finbench_multi_mcf_analogies_fbv2": ("FIN-bench Analogies", "acc"),
+    "group_finbench_multi_mcf_emotions_1k_fbv2": ("FIN-bench Emotions", "acc"),
+    "group_finbench_multi_mcf_general_knowledge_fbv2":
+        ("FIN-bench General Knowledge", "acc"),
+    "group_finbench_multi_mcf_hhh_alignment_fbv2": ("FIN-bench HHH Alignment", "acc"),
+    "group_finbench_multi_mcf_similarities_abstraction_fbv2":
+        ("FIN-bench Similarities", "acc"),
+    "group_goldenswag_multi_cf_fbv2": ("GoldenSwag FI", "acc_norm"),   # cloze
+    "group_ogx_truthfulqax_multi_mc1_fbv2": ("TruthfulQA FI", "acc"),
+    "group_scandisent_fi_multi_mcf_fbv2": ("ScandiSent FI", "acc"),
+    "group_sib200_fi_multi_mcf_fbv2": ("SIB-200 FI", "acc"),
+    "group_squad_multi_gen_fbv2": ("SQuAD FI", "f1"),
+}
+
 
 # Lighten a color by given amount
 def lighten(color, amount=0.5):
@@ -233,6 +270,9 @@ STYLES = {   # name -> (colour, style)
     "Qwen3 8B": (lighten("#6950e8"), WEIGHTS),    # Qwen logo color
     "Qwen3.5 9B": (lighten("#6950e8"), WEIGHTS),    # Qwen logo color
     "Llama 3.1 8B": (lighten("#0081fb"), WEIGHTS),    # Meta logo blue
+    # Apache 2.0, training data documented; counted as open like EuroLLM
+    "Salamandra 7B": (lighten("#f2b705", 0.2), OPEN),   # salamander yellow
+    "FinGPT3 8B": (lighten("#2a9d8f", 0.2), OPEN),      # TurkuNLP, Finnish only
 }
 
 
@@ -249,6 +289,7 @@ GROUP_NAMES = {
     "heldout": "GPQA",   # English held-out group is only GPQA diamond + main
     "INCLUDE": "INCLUDE", "SIB-200": "SIB-200", "OpenSubtitles": "OpenSubtitles",
 }
+GROUP_NAMES.update({n: n for n, _ in FINNISH_GROUPS.values()})   # already styled
 WORDS = {   # per "_"-separated word; unlisted words are capitalised
     "agieval": "AGIEval", "mc": "MC", "rc": "RC", "coqa": "CoQA",
     "deepmind": "DeepMind", "drop": "DROP", "gsm": "GSM", "all": "",
@@ -404,6 +445,35 @@ def load_norwegian() -> pd.DataFrame:
                    tokens=df["tokens_trained"],
                    group=df["task"])
     return finish(df, models)
+
+
+def load_finnish() -> pd.DataFrame:
+    from huggingface_hub import snapshot_download
+    root = snapshot_download(REPO_ID, repo_type="dataset",
+                             allow_patterns=[f"{FINNISH_DIR}/*/*.json"])
+    rows = []
+    for path in sorted(glob.glob(os.path.join(root, FINNISH_DIR, "*", "*.json"))):
+        with open(path) as f:
+            result = json.load(f)
+        args = result["config"]["model_args"]
+        if isinstance(args, str):     # "pretrained=...,revision=..."
+            args = dict(kv.split("=", 1) for kv in args.split(","))
+        key = args["pretrained"] + (f"@{args['revision']}" if args.get("revision") else "")
+        for task, res in result["results"].items():
+            if task in FINNISH_GROUPS:
+                name, metric = FINNISH_GROUPS[task]
+                rows.append((key, args.get("revision"), name, task,
+                             res[f"{metric},none"], result["date"]))
+    df = pd.DataFrame(rows, columns=["series", "checkpoint", "group", "task",
+                                     "score", "date"])
+    # a re-run of a task: keep the latest
+    df = df.sort_values("date").drop_duplicates(["series", "task"], keep="last")
+    prelude = df["series"].str.startswith("openeurollm/prelude@")
+    tokens = [tokens_trained("openeurollm/prelude-checkpoints", c) if p else None
+              for c, p in zip(df["checkpoint"], prelude)]
+    df = df.assign(checkpoint=df["checkpoint"].where(prelude, None), tokens=tokens,
+                   translation=False)
+    return finish(df, FINNISH_MODELS)
 
 
 # --- table and plot ----------------------------------------------------------
@@ -573,7 +643,7 @@ README_INTRO = """# Prelude evaluations
 
 Compares OpenEuroLLM Prelude 9B with fully open models (open weights and
 training data) and open-weight models of similar size on English,
-Multilingual, German and Norwegian benchmarks; run it with
+Multilingual, German, Norwegian and Finnish benchmarks; run it with
 `uv run plot_results.py`. The script downloads the scores from the HF datasets
 `openeurollm/prelude-base-eval-scores` and `ellamind/eval-scores-ref`, takes
 each model's released model (else its latest checkpoint), keeps only the tasks
@@ -667,6 +737,7 @@ def main():
         "Multilingual": load_multilingual,
         "German": lambda: load_eng_deu("deu"),
         "Norwegian": load_norwegian,
+        "Finnish": load_finnish,
     }
     sections = []
     for name, load in groups.items():

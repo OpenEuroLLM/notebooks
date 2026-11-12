@@ -19,7 +19,7 @@ Those tasks were not explicitly decontaminated but we do not expect large contam
 
 ![Norwegian benchmarks (NorEval)](figures/plot_results_norwegian_all.png)
 
-Finnish: TODO.
+![Finnish benchmarks (FIN-bench)](figures/plot_results_finnish_all.png)
 
 **Other evaluations and details.** 
 Evaluations including on tasks which were not explicitly decontaminated are available [here](https://github.com/OpenEuroLLM/notebooks/tree/main/prelude-evaluations-model-card).
