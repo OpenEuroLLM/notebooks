@@ -3,15 +3,31 @@
 Compares OpenEuroLLM Prelude 9B with fully open models (open weights and
 training data) and open-weight models of similar size on English,
 Multilingual, German and Norwegian benchmarks; run it with
-`uv run plot_results.py`. The script downloads the scores from the HF datasets
+`uv run plot_results.py`. 
+
+The script downloads the scores from the HF datasets
 `openeurollm/prelude-base-eval-scores` and `ellamind/eval-scores-ref`, takes
 each model's released model (else its latest checkpoint), keeps only the tasks
 every model of a category has, and averages tasks within each benchmark group
-and then over groups (AVG, which excludes BLEU/chrF translation scores). It
-writes one bar plot per category to `figures/` and regenerates the Results
-section below, where the best value of each column is bold and, in the plots,
-fully open models (white diagonal hatching, Prelude last, outlined) are
-followed by open-weight models (black diagonal hatching).
+and then over groups (AVG, which excludes BLEU/chrF translation scores). 
+
+## Update model card
+
+The Evaluation section of the
+[prelude-base model card](https://huggingface.co/openeurollm/prelude-base) is
+`model_card_evaluation.md`; edit it there, regenerate the figures with
+`uv run plot_results.py`, then run
+
+```bash
+uv run update_model_card_evaluation_section.py                  # show the diff only
+uv run update_model_card_evaluation_section.py --commit-change  # push it
+```
+
+The script replaces the model card's Evaluation section (up to the next heading
+of the same level) with the markdown file and always prints the diff. With
+`--commit-change` it uploads the new README.md and the referenced figures to the
+model repo in one commit, which needs an HF token with write access
+(`hf auth login`).
 
 # Results
 

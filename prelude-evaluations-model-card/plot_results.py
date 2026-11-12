@@ -580,6 +580,24 @@ section below, where the best value of each column is bold and, in the plots,
 fully open models (white diagonal hatching, Prelude last, outlined) are
 followed by open-weight models (black diagonal hatching).
 
+## Update model card
+
+The Evaluation section of the
+[prelude-base model card](https://huggingface.co/openeurollm/prelude-base) is
+`model_card_evaluation.md`; edit it there, regenerate the figures with
+`uv run plot_results.py`, then run
+
+```bash
+uv run update_model_card_evaluation_section.py                  # show the diff only
+uv run update_model_card_evaluation_section.py --commit-change  # push it
+```
+
+The script replaces the model card's Evaluation section (up to the next heading
+of the same level) with the markdown file and always prints the diff. With
+`--commit-change` it uploads the new README.md and the referenced figures to the
+model repo in one commit, which needs an HF token with write access
+(`hf auth login`).
+
 """
 
 
