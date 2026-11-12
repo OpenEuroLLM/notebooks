@@ -337,6 +337,10 @@ def load_eng_deu(language: str) -> pd.DataFrame:
 def load_multilingual() -> pd.DataFrame:
     df = pd.read_parquet(hf_hub_download(
         REPO_ID, "multilingual_scores.parquet", repo_type="dataset"))
+    # one task under two names: include_base_44_north macedonian (baselines
+    # such as Qwen/Llama/Apertus) and ..._north_macedonian (late Prelude
+    # checkpoints, EuroLLM, Olmo, Marin)
+    df = df.assign(task=df["task"].str.replace(" ", "_"))
     df = df[~df["parent_task"].isin(EXCLUDE_BENCHMARKS)]
     df = df[df["task"].map(task_language).map(filter_languages)]
     anneal = df["revision"].str.startswith("anneal300b", na=False)

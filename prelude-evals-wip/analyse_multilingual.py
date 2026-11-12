@@ -153,6 +153,8 @@ def split_global_piqa(df):
 
 def compute_tokens_b(row):
     data, iter_ = row["data"], row["iter"]
+    if not isinstance(iter_, str):  # released model without a checkpoint
+        return None
     if data == "allenai/Olmo-3-1025-7B":
         m = OLMO_STEP_RE.search(iter_)
         if not m:
