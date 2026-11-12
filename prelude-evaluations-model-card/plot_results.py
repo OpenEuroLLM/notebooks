@@ -228,19 +228,19 @@ FINNISH_MODELS = {
     "Qwen/Qwen3.5-9B-Base": "Qwen3.5 9B",
 }
 FINNISH_GROUPS = {   # group task -> (shown name, metric)
-    "group_arc_challenge_fi_multi_mcf_fbv2": ("ARC Challenge FI", "acc"),
-    "group_belebele_multi_mcf_fbv2": ("Belebele FI", "acc"),
-    "group_finbench_multi_mcf_analogies_fbv2": ("FIN-bench Analogies", "acc"),
-    "group_finbench_multi_mcf_emotions_1k_fbv2": ("FIN-bench Emotions", "acc"),
+    "group_arc_challenge_fi_multi_mcf_fbv2": ("ARC Challenge FI", "acc_norm"),
+    "group_belebele_multi_mcf_fbv2": ("Belebele FI", "acc_norm"),
+    "group_finbench_multi_mcf_analogies_fbv2": ("FIN-bench Analogies", "acc_norm"),
+    "group_finbench_multi_mcf_emotions_1k_fbv2": ("FIN-bench Emotions", "acc_norm"),
     "group_finbench_multi_mcf_general_knowledge_fbv2":
-        ("FIN-bench General Knowledge", "acc"),
-    "group_finbench_multi_mcf_hhh_alignment_fbv2": ("FIN-bench HHH Alignment", "acc"),
+        ("FIN-bench General Knowledge", "acc_norm"),
+    "group_finbench_multi_mcf_hhh_alignment_fbv2": ("FIN-bench HHH Alignment", "acc_norm"),
     "group_finbench_multi_mcf_similarities_abstraction_fbv2":
-        ("FIN-bench Similarities", "acc"),
+        ("FIN-bench Similarities", "acc_norm"),
     "group_goldenswag_multi_cf_fbv2": ("GoldenSwag FI", "acc_norm"),   # cloze
-    "group_ogx_truthfulqax_multi_mc1_fbv2": ("TruthfulQA FI", "acc"),
-    "group_scandisent_fi_multi_mcf_fbv2": ("ScandiSent FI", "acc"),
-    "group_sib200_fi_multi_mcf_fbv2": ("SIB-200 FI", "acc"),
+    "group_ogx_truthfulqax_multi_mc1_fbv2": ("TruthfulQA FI", "acc_norm"),
+    "group_scandisent_fi_multi_mcf_fbv2": ("ScandiSent FI", "acc_norm"),
+    "group_sib200_fi_multi_mcf_fbv2": ("SIB-200 FI", "acc_norm"),
     "group_squad_multi_gen_fbv2": ("SQuAD FI", "f1"),
 }
 
