@@ -225,6 +225,7 @@ FINNISH_MODELS = {
     "marin-community/marin-8b-base": "Marin 8B",
     "BSC-LT/salamandra-7b": "Salamandra 7B",
     "TurkuNLP/gpt3-finnish-8B": "FinGPT3 8B",
+    "meta-llama/Llama-3.1-8B": "Llama 3.1 8B",
     "Qwen/Qwen3.5-9B-Base": "Qwen3.5 9B",
 }
 FINNISH_GROUPS = {   # group task -> (shown name, metric)
