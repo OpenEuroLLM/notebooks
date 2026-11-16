@@ -219,7 +219,8 @@ FINNISH_DIR = "finnish_lm_eval_results"
 FINNISH_MODELS = {
     "openeurollm/prelude@anneal2t_multilingual1_dominant1_iter_1192093":
         "Prelude 9B + 2T anneal",
-    "utter-project/EuroLLM-9B": "EuroLLM 9B",
+    #"utter-project/EuroLLM-9B": "EuroLLM 9B",
+    "utter-project/EuroLLM1.5-9B-Base": "EuroLLM 1.5 9B",
     "swiss-ai/Apertus-8B-2509": "Apertus 8B",
     "allenai/Olmo-3-1025-7B": "Olmo 3 7B",
     "marin-community/marin-8b-base": "Marin 8B",
@@ -267,6 +268,7 @@ STYLES = {   # name -> (colour, style)
     "Marin 8B": (lighten("#192026", 0.3), OPEN),    # Marin logo blue-gray
     # EuroLLM is Apache 2.0; counted as open (data not released)
     "EuroLLM 9B": (lighten("#ec5926", 0.3), OPEN),    # Utter logo orange
+    "EuroLLM 1.5 9B": (lighten("#ec5926", 0.3), OPEN),
     "EuroLLM 9B 2512": (lighten("#ec5926", 0.3), OPEN),
     "Qwen3 8B": (lighten("#6950e8"), WEIGHTS),    # Qwen logo color
     "Qwen3.5 9B": (lighten("#6950e8"), WEIGHTS),    # Qwen logo color
