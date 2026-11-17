@@ -341,13 +341,27 @@ def latest(df: pd.DataFrame) -> pd.DataFrame:
     return df[ckpt == df["series"].map(best)]
 
 
+# Training tokens of released models whose scores do not record them (name ->
+# tokens), shown in the row label.
+KNOWN_TOKENS = {
+    "EuroLLM 9B": 4e12,         # EuroLLM-9B model card
+    "EuroLLM 9B 2512": 4e12,    # as in the ellamind scores (NorEval lacks it)
+    "Llama 3.1 8B": 15e12,      # as in the ellamind scores (NorEval lacks it)
+    "Olmo 3 7B": 6e12,          # 6.1T in the ellamind scores
+    "Apertus 8B": 15e12,        # as in the ellamind scores
+    "EuroLLM 1.5 9B": 7e12,
+    "Marin 8B": 13e12,          # marin-8b-base model card: 12.7T (deeper-starling)
+}
+
+
 def finish(df: pd.DataFrame, models: dict[str, str]) -> pd.DataFrame:
     """Latest checkpoint per series, row labels with the tokens seen, and only
     tasks every model has."""
     df = latest(df[df["series"].isin(models)])
     tok = df.groupby("series")["tokens"].first()
+    tok = tok.fillna(tok.index.to_series().map(models).map(KNOWN_TOKENS))
     label = {s: DISPLAY.get(models[s], models[s])
-             + (f" ({tok[s] / 1e12:.1f}T)" if pd.notna(tok.get(s))
+             + (f" ({tok[s] / 1e12:.0f}T)" if pd.notna(tok.get(s))
                              else "") for s in df["series"].unique()}
     df = df.assign(label=df["series"].map(label), name=df["series"].map(models),
                    order=df["series"].map(list(models).index))
