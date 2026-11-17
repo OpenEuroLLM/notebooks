@@ -181,6 +181,7 @@ TRANSLATION_METRICS = ["chrf", "chrf++", "bleu"]   # side panel, not in AVG
 ENG_DEU_MODELS = {
     "prelude_anneal2t": "Prelude 9B + 2T anneal",
     "eurollm_9B_2512": "EuroLLM 9B 2512",
+    "eurollm_1.5_9B": "EuroLLM 1.5 9B",
     "apertus_8b": "Apertus 8B",
     "olmo_3_1025_7b": "Olmo 3 7B",
     "marin_8b": "Marin 8B",
@@ -268,8 +269,8 @@ STYLES = {   # name -> (colour, style)
     "Marin 8B": (lighten("#192026", 0.3), OPEN),    # Marin logo blue-gray
     # EuroLLM is Apache 2.0; counted as open (data not released)
     "EuroLLM 9B": (lighten("#ec5926", 0.3), OPEN),    # Utter logo orange
-    "EuroLLM 1.5 9B": (lighten("#ec5926", 0.3), OPEN),
     "EuroLLM 9B 2512": (lighten("#ec5926", 0.3), OPEN),
+    "EuroLLM 1.5 9B": (lighten("#ec5926", 0.6), OPEN),   # lighter: shown next to 2512
     "Qwen3 8B": (lighten("#6950e8"), WEIGHTS),    # Qwen logo color
     "Qwen3.5 9B": (lighten("#6950e8"), WEIGHTS),    # Qwen logo color
     "Llama 3.1 8B": (lighten("#0081fb"), WEIGHTS),    # Meta logo blue
