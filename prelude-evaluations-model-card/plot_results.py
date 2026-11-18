@@ -211,16 +211,18 @@ DISPLAY = {"Prelude 9B": "Prelude-base 9B",
 # Summarisation / rewriting / truthfulqa-gen (ROUGE-L, BLEU) are dropped.
 NOREVAL_METRICS = ["acc", "f1", "em_first", "errant_f05"]
 
-# Finnish: FIN-bench v2 lm-eval results (finnish_lm_eval_results/<model>/*.json),
-# 5-shot, each benchmark averaged over its 5 prompt variants (group_* rows).
-# Keyed by the lm-eval `pretrained` (and revision for Prelude). Left out:
-# Llama-Poro-2-8B-Instruct (instruction tuned), OLMo 2 7B (superseded by
-# Olmo 3) and the smaller TurkuNLP gpt3-finnish models.
+# Finnish: FIN-bench v2 lm-eval results
+# (finnish_lm_eval_results/<model>/*.json), 5-shot, each benchmark
+# averaged over its 5 prompt variants (group_* rows).  Keyed by the
+# lm-eval `pretrained` (and revision for Prelude). Left out:
+# Llama-Poro-2-8B-Instruct (instruction tuned), OLMo 2 7B (superseded
+# by Olmo 3), EuroLLM 9B (superseded by EuroLLM 1.5 9B Base),
+# openeurollm/prelude@anneal2t_multilingual1_dominant1_iter_1192093
+# (superseded by predule-long), and the smaller TurkuNLP gpt3-finnish
+# models.
 FINNISH_DIR = "finnish_lm_eval_results"
 FINNISH_MODELS = {
-    "openeurollm/prelude@anneal2t_multilingual1_dominant1_iter_1192093":
-        "Prelude 9B + 2T anneal",
-    #"utter-project/EuroLLM-9B": "EuroLLM 9B",
+    "openeurollm/prelude-long": "Prelude 9B",    # long context
     "utter-project/EuroLLM1.5-9B-Base": "EuroLLM 1.5 9B",
     "swiss-ai/Apertus-8B-2509": "Apertus 8B",
     "allenai/Olmo-3-1025-7B": "Olmo 3 7B",
