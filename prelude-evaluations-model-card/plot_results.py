@@ -12,8 +12,9 @@ German, Norwegian and Finnish.
 
 For each category: a markdown table (models x benchmark groups, plus AVG, best
 value of each column in bold) and a grouped bar plot
-figures/plot_results_<category>_all.png (English and Multilingual also
-_decontaminated_only / _non_decontaminated_only). The tables and figures are
+figures/plot_results_<category>_all.svg (English and Multilingual also
+_decontaminated_only / _non_decontaminated_only), with .png and .pdf copies.
+The README and the model card link the vector .svg, crisp at any resolution. The tables and figures are
 also written to README.md (decontaminated_only for English and Multilingual,
 all for German, Norwegian and Finnish), whose text above "# Results" is kept and
 everything from it on regenerated. Each
@@ -180,7 +181,7 @@ TRANSLATION_METRICS = ["chrf", "chrf++", "bleu"]   # side panel, not in AVG
 # AVG, weakest first), then Prelude.
 ENG_DEU_MODELS = {
     "prelude_anneal2t": "Prelude 9B + 2T anneal",
-    "eurollm_9B_2512": "EuroLLM 9B 2512",
+    #"eurollm_9B_2512": "EuroLLM 9B 2512",   # superseded by EuroLLM 1.5
     "eurollm_1.5_9B": "EuroLLM 1.5 9B",
     "apertus_8b": "Apertus 8B",
     "olmo_3_1025_7b": "Olmo 3 7B",
@@ -200,7 +201,7 @@ MULTILINGUAL_MODELS = {
     "meta-llama/Llama-3.1-8B": "Llama 3.1 8B",
 }
 # NorEval covers ~80 models; the baselines are picked automatically as those
-# also used for English / German / Multilingual (see norwegian_models).
+# also used for English / German (see norwegian_models).
 NOREVAL_PRELUDE = {"openeurollm/prelude-base": "Prelude 9B + 2T anneal"}
 NOREVAL_SHOTS = 0
 # Shown names where they differ from the internal one (both Prelude rows are
@@ -272,7 +273,7 @@ STYLES = {   # name -> (colour, style)
     # EuroLLM is Apache 2.0; counted as open (data not released)
     "EuroLLM 9B": (lighten("#ec5926", 0.3), OPEN),    # Utter logo orange
     "EuroLLM 9B 2512": (lighten("#ec5926", 0.3), OPEN),
-    "EuroLLM 1.5 9B": (lighten("#ec5926", 0.6), OPEN),   # lighter: shown next to 2512
+    "EuroLLM 1.5 9B": (lighten("#ec5926", 0.3), OPEN),
     "Qwen3 8B": (lighten("#6950e8"), WEIGHTS),    # Qwen logo color
     "Qwen3.5 9B": (lighten("#6950e8"), WEIGHTS),    # Qwen logo color
     "Llama 3.1 8B": (lighten("#0081fb"), WEIGHTS),    # Meta logo blue
@@ -347,8 +348,8 @@ def latest(df: pd.DataFrame) -> pd.DataFrame:
 # tokens), shown in the row label.
 KNOWN_TOKENS = {
     "EuroLLM 9B": 4e12,         # EuroLLM-9B model card
-    "EuroLLM 9B 2512": 4e12,    # as in the ellamind scores (NorEval lacks it)
-    "Llama 3.1 8B": 15e12,      # as in the ellamind scores (NorEval lacks it)
+    "EuroLLM 9B 2512": 4e12,    # as in the ellamind scores
+    "Llama 3.1 8B": 15e12,      # as in the ellamind scores
     "Olmo 3 7B": 6e12,          # 6.1T in the ellamind scores
     "Apertus 8B": 15e12,        # as in the ellamind scores
     "EuroLLM 1.5 9B": 7e12,
@@ -430,12 +431,10 @@ def norm_name(name: str) -> str:
 
 
 def norwegian_models(df: pd.DataFrame) -> dict[str, str]:
-    """NorEval model id -> our model name, for Prelude and every baseline of
-    the other categories that NorEval has. The HF id is matched before the
-    display name, so EuroLLM-9B-2512 maps to "EuroLLM 9B 2512" rather than
-    the original "EuroLLM 9B"."""
-    ours = [n for n in (*ENG_DEU_MODELS.values(), *MULTILINGUAL_MODELS.values())
-            if not n.startswith("Prelude")]
+    """NorEval model id -> our model name, for Prelude and every English /
+    German baseline that NorEval has (the multilingual list is not used: its
+    "EuroLLM 9B" would match EuroLLM-9B-2512, superseded by EuroLLM 1.5)."""
+    ours = [n for n in ENG_DEU_MODELS.values() if not n.startswith("Prelude")]
     by_norm = {norm_name(n): n for n in ours}
     models = dict(NOREVAL_PRELUDE)
     for model, display in df[["model", "model_display_name"]].drop_duplicates().values:
@@ -653,10 +652,16 @@ def plot(name: str, df: pd.DataFrame, acc: pd.DataFrame,
     legend_top = legend_boxes(fig, ax, names)   # after layout: positions final
     fig.text(ax.get_position().x0, legend_top + 0.1 / height, f"{name} benchmarks",
              ha="left", va="bottom", fontsize=14, fontweight="semibold", color=INK)
-    fig.savefig(out, dpi=160, facecolor="white", bbox_inches="tight",
-                pad_inches=0.15)
+    # Vector .svg for the README / model card, plus .png and .pdf copies.
+    # Fixed hash salt and no dates so unchanged figures give identical files.
+    plt.rcParams["svg.hashsalt"] = "prelude"
+    base = os.path.splitext(out)[0]
+    for ext, meta in ((".svg", {"Date": None}), (".png", {}),
+                      (".pdf", {"CreationDate": None, "ModDate": None})):
+        fig.savefig(base + ext, dpi=160, facecolor="white", bbox_inches="tight",
+                    pad_inches=0.15, metadata=meta)
+        print(f"wrote {base + ext}")
     plt.close(fig)
-    print(f"wrote {out}")
 
 
 README_INTRO = """# Prelude evaluations
@@ -766,7 +771,7 @@ def main():
         subsets = (SUBSETS if name in DECONTAMINATION_SPLITS
                    else {"all": SUBSETS["all"]})
         for suffix, (title, keep) in subsets.items():
-            figure = f"figures/plot_results_{name.lower()}_{suffix}.png"
+            figure = f"figures/plot_results_{name.lower()}_{suffix}.svg"
             md = report(name + title, df[df["task"].map(keep)], figure)
             if suffix == ("decontaminated_only" if len(subsets) > 1 else "all"):
                 sections.append((name + title, figure, md))

@@ -6,9 +6,9 @@ We report evaluations in this model card on English and Multilingual benchmarks 
 We show here the performance on English & Multilingual evaluations.
 Note that we report the performance of models which are trained mostly in English (Olmo3 and Marin) to illustrate the benefit over English models for over languages even though those models are not expected to perform very well on non English benchmarks.
 
-![English benchmarks (decontaminated tasks)](figures/plot_results_english_decontaminated_only.png)
+![English benchmarks (decontaminated tasks)](figures/plot_results_english_decontaminated_only.svg)
 
-![Multilingual benchmarks (decontaminated tasks)](figures/plot_results_multilingual_decontaminated_only.png)
+![Multilingual benchmarks (decontaminated tasks)](figures/plot_results_multilingual_decontaminated_only.svg)
 
 Those tasks were all decontaminated from our training data, we do not know whether they are part of the training set of other methods.
 
@@ -16,11 +16,11 @@ Those tasks were all decontaminated from our training data, we do not know wheth
 We show the performance in German, Norwegian (NorEval) and Finnish. 
 Those tasks were not explicitly decontaminated but we do not expect large contamination.
 
-![German benchmarks](figures/plot_results_german_all.png)
+![German benchmarks](figures/plot_results_german_all.svg)
 
-![Norwegian benchmarks (NorEval)](figures/plot_results_norwegian_all.png)
+![Norwegian benchmarks (NorEval)](figures/plot_results_norwegian_all.svg)
 
-![Finnish benchmarks (FIN-bench)](figures/plot_results_finnish_all.png)
+![Finnish benchmarks (FIN-bench)](figures/plot_results_finnish_all.svg)
 
 **Other evaluations and details.** 
 Evaluations including on tasks which were not explicitly decontaminated are available [here](https://github.com/OpenEuroLLM/notebooks/tree/main/prelude-evaluations-model-card).
